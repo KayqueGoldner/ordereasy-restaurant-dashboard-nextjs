@@ -16,7 +16,7 @@ export const Header = () => {
       </div>
       <div className="flex flex-1 justify-end">
         <Button className="size-8 rounded-full">
-          <FaUser className="size-5" />
+          <FaUser className="size-4" />
         </Button>
       </div>
     </header>
