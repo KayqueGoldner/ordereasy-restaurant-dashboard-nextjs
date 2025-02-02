@@ -9,7 +9,7 @@ export const CartCard = () => {
   const [quantity, setQuantity] = useState(1);
 
   return (
-    <li className="flex h-16 w-full shrink-0 items-start justify-between gap-5">
+    <li className="flex h-16 w-full shrink-0 items-start justify-between gap-3">
       <div className="flex h-full w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-200">
         <CiImageOn className="size-7 text-primary" />
       </div>
@@ -20,7 +20,7 @@ export const CartCard = () => {
             $1.00
           </h3>
         </div>
-        <div className="flex gap-x-2">
+        <div className="flex gap-x-1.5">
           <div className="flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1">
             <Button
               className="size-5 rounded-full p-0"

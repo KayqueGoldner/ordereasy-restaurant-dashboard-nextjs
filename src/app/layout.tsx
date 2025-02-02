@@ -1,11 +1,12 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const font = Poppins({
   weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
-})
+});
 
 export const metadata: Metadata = {
   title: "OrderEasy",
@@ -19,10 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${font.className} antialiased`}
-      >
-        {children}
+      <body className={`${font.className} antialiased`}>
+        <NuqsAdapter>{children}</NuqsAdapter>
       </body>
     </html>
   );
