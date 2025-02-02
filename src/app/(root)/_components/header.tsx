@@ -8,7 +8,7 @@ import { HeaderCalendar } from "./header-calendar";
 
 export const Header = () => {
   return (
-    <header className="flex h-12 items-center justify-between gap-5 rounded-xl bg-white px-4">
+    <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-4">
       <div className="flex items-center gap-3">
         <Logo />
         <Separator className="h-px w-10" />
