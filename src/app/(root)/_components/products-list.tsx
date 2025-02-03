@@ -44,9 +44,9 @@ export const ProductsList = () => {
         </Hint>
       </div>
       <ScrollArea className="h-full flex-1 pr-5">
-        <ul className="grid h-full grid-cols-5 gap-2">
+        <ul className="flex h-full flex-wrap gap-3">
           {products.map((product) => (
-            <li key={product.id}>
+            <li key={product.id} className="w-48">
               <ProductCard product={product} />
             </li>
           ))}

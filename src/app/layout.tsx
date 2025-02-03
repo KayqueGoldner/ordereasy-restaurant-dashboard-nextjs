@@ -21,7 +21,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${font.className} antialiased`}>
-        <NuqsAdapter>{children}</NuqsAdapter>
+        <NuqsAdapter>
+          <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+        </NuqsAdapter>
       </body>
     </html>
   );
