@@ -11,10 +11,10 @@ import { products } from "@/data/products";
 import { useExpandHome } from "@/hooks/use-expand-home";
 import { Separator } from "@/components/ui/separator";
 import { Hint } from "@/components/hint";
+import { cn } from "@/lib/utils";
 
 import { ProductCard } from "./product-card";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 export const ProductsList = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -24,25 +24,25 @@ export const ProductsList = () => {
     <main className="-mt-2 flex h-full flex-1 shrink-0 flex-col overflow-hidden">
       <div
         className={cn(
-          "relative flex h-14 flex-col gap-2 overflow-hidden rounded-xl bg-white p-2 transition-all duration-300",
+          "relative flex h-12 flex-col gap-2 overflow-hidden rounded-xl bg-white p-2 transition-all duration-300",
           isFilterOpen && "h-36",
         )}
       >
-        <div className="-my-2 flex h-14 w-full items-center gap-2 py-2">
-          <div className="h-10 flex-1 rounded-full border border-primary/40">
+        <div className="-my-2 flex h-12 w-full items-center gap-2 py-1.5">
+          <div className="h-full flex-1 rounded-full border border-primary/40">
             <Input
               placeholder="Find your favorite meal."
               className="size-full rounded-full border-0"
             />
           </div>
-          <Button className="size-10 rounded-full p-0">
+          <Button className="size-9 rounded-full p-0">
             <TbShoppingBagSearch className="size-5" />
           </Button>
           <Separator orientation="vertical" className="mx-3" />
           <Hint text={isFilterOpen ? "Close filter" : "Open filter"} asChild>
             <Button
               variant="outline"
-              className="size-10 rounded-full p-0"
+              className="size-9 rounded-full p-0"
               onClick={() => setIsFilterOpen((prev) => !prev)}
             >
               {!isFilterOpen ? (
@@ -55,7 +55,7 @@ export const ProductsList = () => {
           <Hint text={isExpanded ? "Collapse" : "Expand"} asChild>
             <Button
               variant="outline"
-              className="size-10 rounded-full p-0"
+              className="size-9 rounded-full p-0"
               onClick={() => changeExpanded((prev) => !prev)}
             >
               {isExpanded ? (
@@ -71,9 +71,9 @@ export const ProductsList = () => {
         </div>
       </div>
       <ScrollArea className="h-full flex-1 pr-5">
-        <ul className="flex h-full flex-wrap gap-3">
+        <ul className="grid h-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
           {products.map((product) => (
-            <li key={product.id} className="w-48">
+            <li key={product.id} className="w-full">
               <ProductCard product={product} />
             </li>
           ))}

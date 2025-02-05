@@ -67,7 +67,7 @@ export const CartCard = ({ isSidebarOpen }: CartCardProps) => {
               variant="outline"
               className="size-7 h-auto rounded-full p-0 text-xs font-semibold"
             >
-              <FaTrash className="size-[14px]" />
+              <FaTrash className="size-[14px] text-primary" />
             </Button>
           </Hint>
         </div>

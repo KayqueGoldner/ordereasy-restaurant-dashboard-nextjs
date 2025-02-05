@@ -6,16 +6,26 @@ import { LuBadgePercent } from "react-icons/lu";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 import { useExpandHome } from "@/hooks/use-expand-home";
-import { cn } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 import { CartCard } from "./cart-card";
 
-export const CartSidebar = () => {
+interface CartSidebarProps {
+  className?: string;
+}
+
+export const CartSidebar = ({ className }: CartSidebarProps) => {
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const { isExpanded } = useExpandHome();
   const [isSidebarOpen, setIsSidebarOpen] = useState(isExpanded);
@@ -34,14 +44,15 @@ export const CartSidebar = () => {
   return (
     <div
       className={cn(
-        "flex w-full max-w-md flex-col gap-1 overflow-hidden rounded-xl bg-white px-3 py-2 transition-all duration-700",
+        "hidden size-full max-w-md shrink-0 flex-col gap-1 overflow-hidden rounded-xl bg-white px-3 py-2 transition-all duration-700 lg:flex",
         isSidebarOpen && "w-16 items-center px-0 transition-all duration-300",
+        className,
       )}
     >
-      <div className="flex items-center justify-between border-b pb-1.5">
+      <div className="flex items-center gap-4 border-b pb-1.5 lg:justify-between">
         <div
           className={cn(
-            "flex size-7 items-center justify-center rounded-full",
+            "flex size-7 items-center justify-between rounded-full",
             isSidebarOpen && "hidden",
           )}
         >
@@ -50,7 +61,10 @@ export const CartSidebar = () => {
         <h1 className={cn("text-lg", isSidebarOpen && "hidden")}>
           Customer&apos;s name
         </h1>
-        <Button className="size-7 rounded-full p-0" onClick={handleSidebar}>
+        <Button
+          className="hidden size-7 rounded-full p-0 lg:flex"
+          onClick={handleSidebar}
+        >
           <CiMenuFries className="size-4 stroke-2 text-white" />
         </Button>
       </div>
@@ -133,5 +147,21 @@ export const CartSidebar = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export const CartSidebarMobile = () => {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button className="flex size-8 rounded-full p-0 lg:hidden">
+          <FaCartShopping className="size-4 stroke-2 text-white" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="overflow-y-auto p-0">
+        <SheetTitle hidden aria-label="cart" />
+        <CartSidebar className="flex max-w-full" />
+      </SheetContent>
+    </Sheet>
   );
 };
