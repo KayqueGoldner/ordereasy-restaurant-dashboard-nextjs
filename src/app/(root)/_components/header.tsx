@@ -1,12 +1,14 @@
-import { FaUser } from "react-icons/fa";
-
+import { auth } from "@/lib/auth";
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { SignInForm } from "@/components/sign-in-form";
+import { UserButton } from "@/components/user-button";
 
 import { HeaderCalendar } from "./header-calendar";
 
-export const Header = () => {
+export const Header = async () => {
+  const session = await auth();
+
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-4">
       <div className="flex items-center gap-3">
@@ -15,9 +17,7 @@ export const Header = () => {
         <HeaderCalendar />
       </div>
       <div className="flex flex-1 justify-end">
-        <Button className="size-8 rounded-full">
-          <FaUser className="size-4" />
-        </Button>
+        {session?.user ? <UserButton /> : <SignInForm />}
       </div>
     </header>
   );
