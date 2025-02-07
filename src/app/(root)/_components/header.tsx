@@ -6,6 +6,7 @@ import { UserButton } from "@/components/user-button";
 import { CartSidebarMobile } from "@/app/(root)/_components/cart-sidebar";
 
 import { HeaderCalendar } from "./header-calendar";
+import { NavigationMenu } from "./navigation-menu";
 
 export const Header = async () => {
   const session = await auth();
@@ -13,6 +14,7 @@ export const Header = async () => {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-4">
       <div className="flex items-center gap-3">
+        <NavigationMenu />
         <Logo />
         <Separator className="h-px w-10" />
         <HeaderCalendar />
