@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
+import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 
 interface ProductCardProps {
   product: {
@@ -14,8 +17,13 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {
+  const { openModal } = useProductCardModal();
+
   return (
-    <div className="flex h-auto w-full flex-col gap-1.5 rounded-xl bg-white p-2">
+    <div
+      className="flex h-auto w-full cursor-pointer flex-col gap-1.5 rounded-xl bg-white p-2"
+      onClick={() => openModal(product.name)}
+    >
       <div className="flex aspect-square h-auto w-full items-center justify-center overflow-hidden rounded-xl bg-accent">
         <Image
           src={product.image}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { TbShoppingBagSearch } from "react-icons/tb";
 import { RiExpandDiagonalSLine, RiCollapseDiagonalLine } from "react-icons/ri";
 import { MdOutlineFilterList, MdOutlineFilterListOff } from "react-icons/md";
@@ -12,9 +13,8 @@ import { useExpandHome } from "@/hooks/use-expand-home";
 import { Separator } from "@/components/ui/separator";
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
-
-import { ProductCard } from "./product-card";
-import { useState } from "react";
+import { ProductCard } from "@/features/product/components/product-card";
+import { ProductCardModal } from "@/features/product/components/product-card-modal";
 
 export const ProductsList = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -22,6 +22,7 @@ export const ProductsList = () => {
 
   return (
     <main className="-mt-2 flex h-full flex-1 shrink-0 flex-col overflow-hidden">
+      <ProductCardModal />
       <div
         className={cn(
           "relative flex h-12 flex-col gap-2 overflow-hidden rounded-xl bg-white p-2 transition-all duration-300",
