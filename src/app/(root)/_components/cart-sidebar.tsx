@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 
 import { CartCard } from "./cart-card";
+import { useCartData } from "@/hooks/use-cart-data";
 
 interface CartSidebarProps {
   className?: string;
@@ -29,6 +30,7 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const { isExpanded } = useExpandHome();
   const [isSidebarOpen, setIsSidebarOpen] = useState(isExpanded);
+  const { items, discount, subTotal, tax, total } = useCartData();
 
   useEffect(() => {
     setIsSidebarOpen(isExpanded);
@@ -76,8 +78,12 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
             "flex h-max w-full flex-col gap-2 overflow-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar]:w-2",
           )}
         >
-          {Array.from({ length: 10 }, (_, index) => (
-            <CartCard key={index} isSidebarOpen={isSidebarOpen} />
+          {items.map((product) => (
+            <CartCard
+              key={product.id}
+              product={product}
+              isSidebarOpen={isSidebarOpen}
+            />
           ))}
         </ul>
       </ScrollArea>
@@ -87,21 +93,21 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
             <h3 className={isSidebarOpen ? "hidden" : ""}>Subtotal</h3>
             <div className={cn("flex items-center", isSidebarOpen && "hidden")}>
               <span className="leading-none">$</span>
-              <div className="w-24 text-center">5.00</div>
+              <div className="w-24 text-center">{subTotal}</div>
             </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <h3 className={isSidebarOpen ? "hidden" : ""}>Tax (15%)</h3>
             <div className={cn("flex items-center", isSidebarOpen && "hidden")}>
               <span className="leading-none">$</span>
-              <div className="w-24 text-center">5,75</div>
+              <div className="w-24 text-center">{tax}</div>
             </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <h3 className={isSidebarOpen ? "hidden" : ""}>Discount</h3>
             <div className={cn("flex items-center", isSidebarOpen && "hidden")}>
               <span className="leading-none">-$</span>
-              <div className="w-24 text-center">0.00</div>
+              <div className="w-24 text-center">{discount}</div>
             </div>
           </div>
           <div className="flex items-center justify-between border-t py-2 text-base">
@@ -113,7 +119,7 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
               )}
             >
               <span className="leading-none">$</span>
-              <div className="w-24 text-center">0.00</div>
+              <div className="w-24 text-center">{total}</div>
             </div>
           </div>
         </div>

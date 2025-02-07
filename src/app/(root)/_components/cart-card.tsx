@@ -1,21 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { CiImageOn } from "react-icons/ci";
+import { useEffect, useState } from "react";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa6";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/hint";
-import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 import { cn } from "@/lib/utils";
+import { useCartData } from "@/hooks/use-cart-data";
 
 interface CartCardProps {
   isSidebarOpen: boolean;
+  product: CartItem;
 }
 
-export const CartCard = ({ isSidebarOpen }: CartCardProps) => {
-  const [quantity, setQuantity] = useState(1);
-  const {} = useCartSidebar();
+export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
+  const [quantity, setQuantity] = useState(product.quantity || 1);
+  const { items, updateQuantity, removeItem } = useCartData();
+
+  useEffect(() => {
+    updateQuantity(product.id, quantity);
+  }, [quantity, product.id, updateQuantity]);
+
+  useEffect(() => {
+    setQuantity(items.find((item) => item.id === product.id)?.quantity || 1);
+  }, [items, product.id]);
+
+  const handleRemoveProduct = () => {
+    removeItem(product.id);
+  };
 
   return (
     <li
@@ -26,11 +39,17 @@ export const CartCard = ({ isSidebarOpen }: CartCardProps) => {
     >
       <div
         className={cn(
-          "flex h-full w-20 shrink-0 items-center justify-center rounded-xl bg-neutral-200",
+          "flex h-full w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-200",
           isSidebarOpen && "size-full",
         )}
       >
-        <CiImageOn className="size-7 text-primary" />
+        <Image
+          src={product.image}
+          alt={product.name}
+          width={256}
+          height={256}
+          className="size-full object-cover"
+        />
       </div>
       <div
         className={cn(
@@ -39,9 +58,9 @@ export const CartCard = ({ isSidebarOpen }: CartCardProps) => {
         )}
       >
         <div className="max-w-[18ch] flex-1 space-y-1 pt-1">
-          <h1 className="truncate text-base">Product&apos;s name</h1>
+          <h1 className="truncate text-base">{product.name}</h1>
           <h3 className="truncate text-sm font-medium text-muted-foreground">
-            $1.00
+            ${product.price}
           </h3>
         </div>
         <div className="flex gap-x-1.5">
@@ -66,6 +85,7 @@ export const CartCard = ({ isSidebarOpen }: CartCardProps) => {
             <Button
               variant="outline"
               className="size-7 h-auto rounded-full p-0 text-xs font-semibold"
+              onClick={handleRemoveProduct}
             >
               <FaTrash className="size-[14px] text-primary" />
             </Button>

@@ -6,14 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 
 interface ProductCardProps {
-  product: {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-    category: string;
-  };
+  product: Product;
 }
 
 export const ProductCard = ({ product }: ProductCardProps) => {

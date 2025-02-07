@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FaMinus, FaPlus } from "react-icons/fa6";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Dialog,
@@ -15,16 +15,26 @@ import { useProductCardModal } from "@/features/product/hooks/use-product-card-m
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useCartData } from "@/hooks/use-cart-data";
 
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
   const { productId, closeModal } = useProductCardModal();
+  const { addItem } = useCartData();
 
   const productData = products.find((product) => product.id === productId);
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [productId]);
 
   if (!productData || !productId) {
     return null;
   }
+
+  const handlePlaceOrder = () => {
+    addItem({ ...productData, quantity });
+  };
 
   return (
     <Dialog open={!!productId} onOpenChange={closeModal}>
@@ -74,7 +84,9 @@ export const ProductCardModal = () => {
             </div>
           </div>
         </div>
-        <Button className="h-14 w-full rounded-none">Place Order</Button>
+        <Button className="h-14 w-full rounded-none" onClick={handlePlaceOrder}>
+          Place Order
+        </Button>
       </DialogContent>
     </Dialog>
   );
