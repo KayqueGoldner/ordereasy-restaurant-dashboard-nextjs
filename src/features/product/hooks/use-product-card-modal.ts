@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 interface ProductCardModalState {
-  productId: string | null;
-  openModal: (id: string) => void;
+  productId: string | number | null;
+  openModal: (id: string | number) => void;
   closeModal: () => void;
 }
 

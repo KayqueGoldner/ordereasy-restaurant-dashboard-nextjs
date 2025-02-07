@@ -21,15 +21,15 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div
-      className="flex h-auto w-full cursor-pointer flex-col gap-1.5 rounded-xl bg-white p-2"
-      onClick={() => openModal(product.name)}
+      className="flex size-full cursor-pointer flex-col gap-1.5 rounded-xl bg-white p-2"
+      onClick={() => openModal(product.id)}
     >
-      <div className="flex aspect-square h-auto w-full items-center justify-center overflow-hidden rounded-xl bg-accent">
+      <div className="flex aspect-square size-full items-center justify-center overflow-hidden rounded-xl bg-accent">
         <Image
           src={product.image}
           alt={product.name}
           width={256}
-          height={148}
+          height={256}
           className="size-full object-cover"
         />
       </div>
