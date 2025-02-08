@@ -1,24 +1,21 @@
-import { parseAsBoolean, useQueryState } from "nuqs";
-import { useEffect } from "react";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export function useExpandHome() {
-  const [state, setState] = useQueryState(
-    "expanded-home-list",
-    parseAsBoolean
-      .withDefault(
-        JSON.parse(localStorage.getItem("expanded-home-list") ?? "false"),
-      )
-      .withOptions({
-        clearOnDefault: false,
-      }),
-  );
-
-  useEffect(() => {
-    localStorage.setItem("expanded-home-list", JSON.stringify(state));
-  }, [state]);
-
-  return {
-    isExpanded: state,
-    changeExpanded: setState,
-  };
+interface ExpandedHomeState {
+  isExpanded: boolean;
+  onExpand: () => void;
+  onCollapse: () => void;
 }
+
+export const useExpandHome = create<ExpandedHomeState>()(
+  persist(
+    (set) => ({
+      isExpanded: false,
+      onExpand: () => set(() => ({ isExpanded: true })),
+      onCollapse: () => set(() => ({ isExpanded: false })),
+    }),
+    {
+      name: "expanded-home-list",
+    },
+  ),
+);

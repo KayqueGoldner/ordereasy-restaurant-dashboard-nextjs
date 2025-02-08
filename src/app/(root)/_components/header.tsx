@@ -1,12 +1,20 @@
+import dynamic from "next/dynamic";
+
 import { auth } from "@/lib/auth";
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
 import { SignInForm } from "@/components/sign-in-form";
 import { UserButton } from "@/components/user-button";
-import { CartSidebarMobile } from "@/app/(root)/_components/cart-sidebar";
 
-import { HeaderCalendar } from "./header-calendar";
+import { CartSidebarMobile } from "./cart-sidebar";
 import { NavigationMenu } from "./navigation-menu";
+
+const HeaderCalendar = dynamic(
+  () => import("./header-calendar").then((comp) => comp.HeaderCalendar),
+  {
+    loading: () => <p>Loading...</p>,
+  },
+);
 
 export const Header = async () => {
   const session = await auth();

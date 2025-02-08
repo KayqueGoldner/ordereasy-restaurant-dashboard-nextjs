@@ -15,10 +15,22 @@ import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
 import { ProductCard } from "@/features/product/components/product-card";
 import { ProductCardModal } from "@/features/product/components/product-card-modal";
+import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 
 export const ProductsList = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const { isExpanded, changeExpanded } = useExpandHome();
+  const { isExpanded, onCollapse, onExpand } = useExpandHome();
+  const { onClose, onOpen } = useCartSidebar();
+
+  const handleExpand = () => {
+    if (isExpanded) {
+      onCollapse();
+      onOpen();
+    } else {
+      onExpand();
+      onClose();
+    }
+  };
 
   return (
     <main className="-mt-2 flex h-full flex-1 shrink-0 flex-col overflow-hidden">
@@ -57,7 +69,7 @@ export const ProductsList = () => {
             <Button
               variant="outline"
               className="size-9 rounded-full p-0"
-              onClick={() => changeExpanded((prev) => !prev)}
+              onClick={handleExpand}
             >
               {isExpanded ? (
                 <RiCollapseDiagonalLine className="size-5" />

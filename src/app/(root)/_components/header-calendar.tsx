@@ -29,7 +29,7 @@ export const HeaderCalendar = () => {
       <Separator className="h-px w-5" />
       <div className="flex items-center gap-2">
         <CiClock2 className="size-4 text-primary" />
-        <p className="text-sm font-medium">
+        <p className="text-sm font-medium" suppressHydrationWarning>
           {format(currentTime, "HH:mm:ss a")}
         </p>
       </div>

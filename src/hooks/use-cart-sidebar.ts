@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface CartSidebarState {
   isOpen: boolean;
@@ -6,9 +7,15 @@ interface CartSidebarState {
   onClose: () => void;
 }
 
-export const useCartSidebar = create<CartSidebarState>((set) => ({
-  isOpen: true,
-  isClosed: false,
-  onOpen: () => set(() => ({ isOpen: true })),
-  onClose: () => set(() => ({ isOpen: false })),
-}));
+export const useCartSidebar = create<CartSidebarState>()(
+  persist(
+    (set) => ({
+      isOpen: true,
+      onOpen: () => set(() => ({ isOpen: true })),
+      onClose: () => set(() => ({ isOpen: false })),
+    }),
+    {
+      name: "cart-sidebar-state",
+    },
+  ),
+);
