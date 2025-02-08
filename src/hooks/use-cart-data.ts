@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface UseCartDataState {
   items: CartItem[];
@@ -14,57 +15,64 @@ interface UseCartDataState {
   applyDiscountCode: (code: string, discountAmount: number) => void;
 }
 
-export const useCartData = create<UseCartDataState>((set) => ({
-  items: [],
-  discount: 0,
-  discountCode: null,
-  subTotal: 0,
-  tax: 0,
-  total: 0,
-
-  addItem: (item) => {
-    set((state) => {
-      const existingItem = state.items.find((i) => i.id === item.id);
-      const updatedItems = existingItem
-        ? state.items.map((i) =>
-            i.id === item.id ? { ...i, quantity: item.quantity } : i,
-          )
-        : [...state.items, item];
-
-      return calculateTotals(updatedItems, state.discount);
-    });
-  },
-
-  removeItem: (id) => {
-    set((state) => {
-      const updatedItems = state.items.filter((item) => item.id !== id);
-      return calculateTotals(updatedItems, state.discount);
-    });
-  },
-
-  updateQuantity: (id, quantity) => {
-    set((state) => {
-      const updatedItems = state.items.map((item) =>
-        item.id === id ? { ...item, quantity } : item,
-      );
-      return calculateTotals(updatedItems, state.discount);
-    });
-  },
-
-  clearCart: () =>
-    set({
+export const useCartData = create<UseCartDataState>()(
+  persist(
+    (set) => ({
       items: [],
       discount: 0,
       discountCode: null,
       subTotal: 0,
       tax: 0,
       total: 0,
-    }),
 
-  applyDiscountCode: (code, discountAmount) => {
-    set((state) => calculateTotals(state.items, discountAmount, code));
-  },
-}));
+      addItem: (item) => {
+        set((state) => {
+          const existingItem = state.items.find((i) => i.id === item.id);
+          const updatedItems = existingItem
+            ? state.items.map((i) =>
+                i.id === item.id ? { ...i, quantity: item.quantity } : i,
+              )
+            : [...state.items, item];
+
+          return calculateTotals(updatedItems, state.discount);
+        });
+      },
+
+      removeItem: (id) => {
+        set((state) => {
+          const updatedItems = state.items.filter((item) => item.id !== id);
+          return calculateTotals(updatedItems, state.discount);
+        });
+      },
+
+      updateQuantity: (id, quantity) => {
+        set((state) => {
+          const updatedItems = state.items.map((item) =>
+            item.id === id ? { ...item, quantity } : item,
+          );
+          return calculateTotals(updatedItems, state.discount);
+        });
+      },
+
+      clearCart: () =>
+        set({
+          items: [],
+          discount: 0,
+          discountCode: null,
+          subTotal: 0,
+          tax: 0,
+          total: 0,
+        }),
+
+      applyDiscountCode: (code, discountAmount) => {
+        set((state) => calculateTotals(state.items, discountAmount, code));
+      },
+    }),
+    {
+      name: "ordereasy-cart-data",
+    },
+  ),
+);
 
 // Função auxiliar para recalcular subtotal, imposto e total
 const calculateTotals = (
