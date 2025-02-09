@@ -3,8 +3,8 @@ import { persist } from "zustand/middleware";
 
 interface UseCartDataState {
   items: CartItem[];
-  discount: number;
-  discountCode: string | null;
+  discounts: { code: string; amount: number }[];
+  totalDiscount: number;
   tax: number;
   subTotal: number;
   total: number;
@@ -19,12 +19,13 @@ export const useCartData = create<UseCartDataState>()(
   persist(
     (set) => ({
       items: [],
-      discount: 0,
-      discountCode: null,
+      discounts: [],
+      totalDiscount: 0,
       subTotal: 0,
       tax: 0,
       total: 0,
 
+      // Adiciona um item ao carrinho
       addItem: (item) => {
         set((state) => {
           const existingItem = state.items.find((i) => i.id === item.id);
@@ -34,38 +35,49 @@ export const useCartData = create<UseCartDataState>()(
               )
             : [...state.items, item];
 
-          return calculateTotals(updatedItems, state.discount);
+          return calculateTotals(updatedItems, state.discounts);
         });
       },
 
+      // Remove um item do carrinho
       removeItem: (id) => {
         set((state) => {
           const updatedItems = state.items.filter((item) => item.id !== id);
-          return calculateTotals(updatedItems, state.discount);
+          return calculateTotals(updatedItems, state.discounts);
         });
       },
 
+      // Atualiza a quantidade de um item no carrinho
       updateQuantity: (id, quantity) => {
         set((state) => {
           const updatedItems = state.items.map((item) =>
             item.id === id ? { ...item, quantity } : item,
           );
-          return calculateTotals(updatedItems, state.discount);
+          return calculateTotals(updatedItems, state.discounts);
         });
       },
 
+      // Limpa o carrinho
       clearCart: () =>
         set({
           items: [],
-          discount: 0,
-          discountCode: null,
           subTotal: 0,
           tax: 0,
           total: 0,
         }),
 
+      // Aplica um código de desconto, garantindo que ele não seja reutilizado
       applyDiscountCode: (code, discountAmount) => {
-        set((state) => calculateTotals(state.items, discountAmount, code));
+        set((state) => {
+          if (state.discounts.some((d) => d.code === code)) {
+            return state; // Código já utilizado, nenhuma alteração feita
+          }
+          const updatedDiscounts = [
+            ...state.discounts,
+            { code, amount: discountAmount },
+          ];
+          return calculateTotals(state.items, updatedDiscounts);
+        });
       },
     }),
     {
@@ -77,20 +89,26 @@ export const useCartData = create<UseCartDataState>()(
 // Função auxiliar para recalcular subtotal, imposto e total
 const calculateTotals = (
   items: CartItem[],
-  discount: number,
-  discountCode: string | null = null,
+  discounts: { code: string; amount: number }[],
 ) => {
   const subTotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
   const tax = subTotal * 0.15; // Taxa de 15%
-  const total = subTotal - discount + tax;
+  const totalDiscount = discounts.reduce(
+    (sum, discount) => sum + discount.amount,
+    0,
+  );
+  let total = subTotal - totalDiscount + tax;
+
+  // Garantindo que o total não seja negativo
+  total = Math.max(total, 0);
 
   return {
     items,
-    discount,
-    discountCode,
+    discounts,
+    totalDiscount: parseFloat(totalDiscount.toFixed(2)),
     subTotal: parseFloat(subTotal.toFixed(2)),
     tax: parseFloat(tax.toFixed(2)),
     total: parseFloat(total.toFixed(2)),

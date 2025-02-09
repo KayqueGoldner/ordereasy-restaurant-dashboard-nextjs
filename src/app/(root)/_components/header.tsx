@@ -20,7 +20,7 @@ export const Header = async () => {
   const session = await auth();
 
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-4">
+    <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-2">
       <div className="flex items-center gap-3">
         <NavigationMenu />
         <Logo />

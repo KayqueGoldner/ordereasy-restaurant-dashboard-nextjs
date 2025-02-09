@@ -1,9 +1,10 @@
 "use client";
 
-import { FaCartShopping } from "react-icons/fa6";
+import { FaCartShopping, FaCheck } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
 import { LuBadgePercent } from "react-icons/lu";
 import Link from "next/link";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 import { useCartData } from "@/hooks/use-cart-data";
 
 import { CartCard } from "./cart-card";
+import { DiscountCodes } from "@/data/discount-codes";
 
 interface CartSidebarProps {
   className?: string;
@@ -26,8 +28,10 @@ interface CartSidebarProps {
 }
 
 export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
+  const [discountCode, setDiscountCode] = useState("");
   const { isOpen, onClose, onOpen } = useCartSidebar();
-  const { items, discount, subTotal, tax, total } = useCartData();
+  const { items, totalDiscount, subTotal, tax, total, applyDiscountCode } =
+    useCartData();
 
   const handleSidebar = () => {
     if (isOpen) {
@@ -35,6 +39,26 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     } else {
       onOpen();
     }
+  };
+
+  const handleDiscountCode = () => {
+    const validateDiscountCode = DiscountCodes.find(
+      (code) => code.code === discountCode,
+    );
+
+    if (validateDiscountCode) {
+      if (new Date(validateDiscountCode.expires) < new Date()) {
+        alert("Code expired.");
+        setDiscountCode("");
+        return;
+      }
+
+      applyDiscountCode(validateDiscountCode.code, validateDiscountCode.amount);
+    } else {
+      alert("Invalid code.");
+    }
+
+    setDiscountCode("");
   };
 
   const collapseSidebar = !isOpen && isMobile === false;
@@ -120,7 +144,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
               className={cn("flex items-center", collapseSidebar && "hidden")}
             >
               <span className="leading-none">-$</span>
-              <div className="w-24 text-center">{discount}</div>
+              <div className="w-24 text-center">{totalDiscount}</div>
             </div>
           </div>
           <div className="flex items-center justify-between border-t py-2 text-base">
@@ -140,11 +164,21 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
           <div className={cn("flex flex-1 gap-2", collapseSidebar && "hidden")}>
             <div className="relative h-12 flex-1 rounded-full border border-green-600">
               <Input
-                className="absolute inset-x-0 h-12 rounded-full border border-transparent bg-transparent"
-                placeholder="Promo Code"
+                placeholder="Discount Code"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                className="absolute inset-x-0 h-12 rounded-full border border-transparent bg-transparent uppercase placeholder:capitalize"
               />
-              <Button className="absolute right-1 top-1/2 size-10 -translate-y-1/2 rounded-full bg-green-600 p-0 hover:bg-green-600/90">
-                <LuBadgePercent className="size-4 text-white" />
+              <Button
+                className="absolute right-1 top-1/2 size-10 -translate-y-1/2 rounded-full bg-green-600 p-0 hover:bg-green-600/90"
+                onClick={handleDiscountCode}
+                disabled={!discountCode}
+              >
+                {discountCode ? (
+                  <FaCheck className="size-4 text-white" />
+                ) : (
+                  <LuBadgePercent className="size-4 text-white" />
+                )}
               </Button>
             </div>
           </div>
