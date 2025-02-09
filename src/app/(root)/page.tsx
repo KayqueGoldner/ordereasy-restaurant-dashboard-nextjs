@@ -12,7 +12,7 @@ export default function Home() {
           <FilterNav />
           <ProductsList />
         </div>
-        <CartSidebar />
+        <CartSidebar isMobile={false} />
       </div>
     </>
   );

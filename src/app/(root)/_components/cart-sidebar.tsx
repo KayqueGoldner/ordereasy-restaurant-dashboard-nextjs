@@ -22,9 +22,10 @@ import { CartCard } from "./cart-card";
 
 interface CartSidebarProps {
   className?: string;
+  isMobile: boolean;
 }
 
-export const CartSidebar = ({ className }: CartSidebarProps) => {
+export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const { items, discount, subTotal, tax, total } = useCartData();
 
@@ -36,11 +37,13 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
     }
   };
 
+  const collapseSidebar = !isOpen && isMobile === false;
+
   return (
     <div
       className={cn(
         "hidden size-full max-w-md shrink-0 flex-col gap-1 overflow-hidden rounded-xl bg-white px-3 py-2 transition-all duration-700 lg:flex",
-        !isOpen && "w-16 items-center px-0 transition-all duration-300",
+        collapseSidebar && "w-16 items-center px-0 transition-all duration-300",
         className,
       )}
     >
@@ -48,12 +51,12 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
         <div
           className={cn(
             "flex size-7 items-center justify-between rounded-full",
-            !isOpen && "hidden",
+            collapseSidebar && "hidden",
           )}
         >
           <FaCartShopping className="size-4 text-primary" />
         </div>
-        <h1 className={cn("text-lg", !isOpen && "hidden")}>
+        <h1 className={cn("text-lg", collapseSidebar && "hidden")}>
           Customer&apos;s name
         </h1>
         <Button
@@ -63,7 +66,9 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
           <CiMenuFries className="size-4 stroke-2 text-white" />
         </Button>
       </div>
-      <ScrollArea className={cn("flex-1 py-5 pr-3", !isOpen && "w-16 px-1.5")}>
+      <ScrollArea
+        className={cn("flex-1 py-5 pr-3", collapseSidebar && "w-16 px-1.5")}
+      >
         <ul
           className={cn(
             "flex h-max w-full flex-col gap-2 overflow-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar]:w-2",
@@ -74,12 +79,15 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
               <CartCard
                 key={product.id}
                 product={product}
-                isSidebarOpen={!isOpen}
+                isSidebarOpen={collapseSidebar}
               />
             ))
           ) : (
             <h1
-              className={cn("block text-center text-xl", !isOpen && "hidden")}
+              className={cn(
+                "block text-center text-xl",
+                collapseSidebar && "hidden",
+              )}
             >
               The cart is empty
             </h1>
@@ -89,32 +97,38 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
       <div className="min-h-max">
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
-            <h3 className={!isOpen ? "hidden" : ""}>Subtotal</h3>
-            <div className={cn("flex items-center", !isOpen && "hidden")}>
+            <h3 className={collapseSidebar ? "hidden" : ""}>Subtotal</h3>
+            <div
+              className={cn("flex items-center", collapseSidebar && "hidden")}
+            >
               <span className="leading-none">$</span>
               <div className="w-24 text-center">{subTotal}</div>
             </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <h3 className={!isOpen ? "hidden" : ""}>Tax (15%)</h3>
-            <div className={cn("flex items-center", !isOpen && "hidden")}>
+            <h3 className={collapseSidebar ? "hidden" : ""}>Tax (15%)</h3>
+            <div
+              className={cn("flex items-center", collapseSidebar && "hidden")}
+            >
               <span className="leading-none">$</span>
               <div className="w-24 text-center">{tax}</div>
             </div>
           </div>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <h3 className={!isOpen ? "hidden" : ""}>Discount</h3>
-            <div className={cn("flex items-center", !isOpen && "hidden")}>
+            <h3 className={collapseSidebar ? "hidden" : ""}>Discount</h3>
+            <div
+              className={cn("flex items-center", collapseSidebar && "hidden")}
+            >
               <span className="leading-none">-$</span>
               <div className="w-24 text-center">{discount}</div>
             </div>
           </div>
           <div className="flex items-center justify-between border-t py-2 text-base">
-            <h3 className={!isOpen ? "hidden" : ""}>Total</h3>
+            <h3 className={collapseSidebar ? "hidden" : ""}>Total</h3>
             <div
               className={cn(
                 "flex items-center",
-                !isOpen && "size-12 flex-col justify-center text-sm",
+                collapseSidebar && "size-12 flex-col justify-center text-sm",
               )}
             >
               <span className="leading-none">$</span>
@@ -123,7 +137,7 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
           </div>
         </div>
         <div className="flex items-center justify-center gap-1">
-          <div className={cn("flex flex-1 gap-2", !isOpen && "hidden")}>
+          <div className={cn("flex flex-1 gap-2", collapseSidebar && "hidden")}>
             <div className="relative h-12 flex-1 rounded-full border border-green-600">
               <Input
                 className="absolute inset-x-0 h-12 rounded-full border border-transparent bg-transparent"
@@ -137,12 +151,12 @@ export const CartSidebar = ({ className }: CartSidebarProps) => {
           <Button
             className={cn(
               "h-12 w-40 rounded-full",
-              !isOpen && "size-10 rounded-full p-0",
+              collapseSidebar && "size-10 rounded-full p-0",
             )}
             asChild
           >
             <Link href="/">
-              {!isOpen ? (
+              {collapseSidebar ? (
                 <FaCartShopping className="size-4" />
               ) : (
                 <>Place Order</>
@@ -165,7 +179,7 @@ export const CartSidebarMobile = () => {
       </SheetTrigger>
       <SheetContent className="overflow-y-auto p-0">
         <SheetTitle hidden aria-label="cart" />
-        <CartSidebar className="flex max-w-full" />
+        <CartSidebar className="flex max-w-full" isMobile={true} />
       </SheetContent>
     </Sheet>
   );
