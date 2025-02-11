@@ -8,7 +8,6 @@ import { MdOutlineFilterList, MdOutlineFilterListOff } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { products } from "@/data/products";
 import { useExpandHome } from "@/hooks/use-expand-home";
 import { Separator } from "@/components/ui/separator";
 import { Hint } from "@/components/hint";
@@ -16,8 +15,13 @@ import { cn } from "@/lib/utils";
 import { ProductCard } from "@/features/product/components/product-card";
 import { ProductCardModal } from "@/features/product/components/product-card-modal";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
+import { Product } from "@/db/schema/product";
 
-export const ProductsList = () => {
+interface ProductsListProps {
+  products: Product[];
+}
+
+export const ProductsList = ({ products }: ProductsListProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { isExpanded, onCollapse, onExpand } = useExpandHome();
   const { onClose, onOpen } = useCartSidebar();

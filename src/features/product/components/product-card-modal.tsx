@@ -10,34 +10,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { products } from "@/data/products";
-import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCartData } from "@/hooks/use-cart-data";
 
+import { useProductCardModal } from "../hooks/use-product-card-modal";
+
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
-  const { productId, closeModal } = useProductCardModal();
+  const { product, closeModal } = useProductCardModal();
   const { addItem } = useCartData();
-
-  const productData = products.find((product) => product.id === productId);
 
   useEffect(() => {
     setQuantity(1);
-  }, [productId]);
+  }, [product]);
 
-  if (!productData || !productId) {
-    return null;
-  }
+  if (!product) return null;
 
   const handlePlaceOrder = () => {
-    addItem({ ...productData, quantity });
+    addItem({
+      id: product.id,
+      image: product.imageUrl,
+      name: product.name,
+      price: product.price,
+      quantity,
+    });
   };
 
   return (
-    <Dialog open={!!productId} onOpenChange={closeModal}>
+    <Dialog open={!!product} onOpenChange={closeModal}>
       <DialogContent className="gap-1 overflow-hidden !rounded-2xl border-none p-0">
         <div className="px-4 py-3">
           <DialogHeader className="p-0">
@@ -46,21 +48,21 @@ export const ProductCardModal = () => {
           <div className="mt-2">
             <div className="flex items-center justify-center rounded-xl bg-neutral-100">
               <Image
-                src={productData.image}
-                alt={productData.name || "Product image"}
+                src={product.imageUrl}
+                alt={product.name || "Product image"}
                 width={256}
                 height={256}
                 className="h-48 w-56 rounded-xl object-cover"
               />
             </div>
             <div className="mt-1.5 space-y-1.5">
-              <Badge className="h-5 px-1.5 py-0">{productData.category}</Badge>
-              <h1 className="text-xl font-medium">{productData.name}</h1>
+              <Badge className="h-5 px-1.5 py-0">{product.category}</Badge>
+              <h1 className="text-xl font-medium">{product.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {productData.description}
+                {product.description}
               </p>
               <h3 className="text-xl font-bold text-primary">
-                ${productData.price}
+                ${product.price}
               </h3>
               <Textarea
                 placeholder="Add notes to order"
@@ -85,7 +87,7 @@ export const ProductCardModal = () => {
           </div>
         </div>
         <Button className="h-14 w-full rounded-none" onClick={handlePlaceOrder}>
-          Place Order
+          Add to cart
         </Button>
       </DialogContent>
     </Dialog>

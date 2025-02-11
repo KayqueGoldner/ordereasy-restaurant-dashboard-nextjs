@@ -92,7 +92,7 @@ const calculateTotals = (
   discounts: { code: string; amount: number }[],
 ) => {
   const subTotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + Number(item.price) * item.quantity,
     0,
   );
   const tax = subTotal * 0.15; // Taxa de 15%

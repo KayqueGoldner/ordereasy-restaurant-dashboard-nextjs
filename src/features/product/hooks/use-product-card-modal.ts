@@ -1,13 +1,15 @@
 import { create } from "zustand";
 
+import { Product } from "@/db/schema/product";
+
 interface ProductCardModalState {
-  productId: string | number | null;
-  openModal: (id: string | number) => void;
+  product: Product | null;
+  openModal: (id: Product | null | null) => void;
   closeModal: () => void;
 }
 
 export const useProductCardModal = create<ProductCardModalState>((set) => ({
-  productId: null,
-  openModal: (id) => set({ productId: id }),
-  closeModal: () => set({ productId: null }),
+  product: null,
+  openModal: (product) => set({ product }),
+  closeModal: () => set({ product: null }),
 }));
