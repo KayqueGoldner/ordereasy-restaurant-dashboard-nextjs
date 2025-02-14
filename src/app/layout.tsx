@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
+import { TRPCProvider } from "@/trpc/client";
+
 const font = Poppins({
   weight: ["300", "400", "500", "600", "700"],
   subsets: ["latin"],
@@ -21,9 +23,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${font.className} antialiased`}>
-        <NuqsAdapter>
-          <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
-        </NuqsAdapter>
+        <TRPCProvider>
+          <NuqsAdapter>
+            <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+          </NuqsAdapter>
+        </TRPCProvider>
       </body>
     </html>
   );
