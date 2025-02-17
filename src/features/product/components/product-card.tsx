@@ -3,9 +3,9 @@
 import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
-import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
-import { Product } from "@/db/schema/product";
 import { formatCategory } from "@/lib/utils";
+import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
+import { Product } from "@/db/schema/products";
 
 interface ProductCardProps {
   product: Product;

@@ -1,3 +1,5 @@
+import { cart } from "@/db/schema/cart";
+import { relations } from "drizzle-orm";
 import {
   boolean,
   timestamp,
@@ -16,7 +18,17 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  cartId: text("cart_id").references(() => cart.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const userRelations = relations(users, ({ one }) => ({
+  cart: one(cart, {
+    fields: [users.cartId],
+    references: [cart.id],
+  }),
+}));
 
 export const accounts = pgTable(
   "account",

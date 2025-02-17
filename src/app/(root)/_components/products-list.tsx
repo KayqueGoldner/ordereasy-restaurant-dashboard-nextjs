@@ -5,6 +5,7 @@ import { TbShoppingBagSearch } from "react-icons/tb";
 import { RiExpandDiagonalSLine, RiCollapseDiagonalLine } from "react-icons/ri";
 import { MdOutlineFilterList, MdOutlineFilterListOff } from "react-icons/md";
 
+import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,19 +13,16 @@ import { useExpandHome } from "@/hooks/use-expand-home";
 import { Separator } from "@/components/ui/separator";
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
-import { ProductCard } from "@/features/product/components/product-card";
-import { ProductCardModal } from "@/features/product/components/product-card-modal";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
-import { Product } from "@/db/schema/product";
+import { ProductCardModal } from "@/features/product/components/product-card-modal";
+import { ProductCard } from "@/features/product/components/product-card";
 
-interface ProductsListProps {
-  products: Product[];
-}
-
-export const ProductsList = ({ products }: ProductsListProps) => {
+export const ProductsList = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { isExpanded, onCollapse, onExpand } = useExpandHome();
   const { onClose, onOpen } = useCartSidebar();
+
+  const [data] = trpc.products.getMany.useSuspenseQuery();
 
   const handleExpand = () => {
     if (isExpanded) {
@@ -89,7 +87,7 @@ export const ProductsList = ({ products }: ProductsListProps) => {
       </div>
       <ScrollArea className="h-full flex-1 pr-5">
         <ul className="grid h-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
-          {products.map((product) => (
+          {data.map((product) => (
             <li key={product.id} className="w-full">
               <ProductCard product={product} />
             </li>
