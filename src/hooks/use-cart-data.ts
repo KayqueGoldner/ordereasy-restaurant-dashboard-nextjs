@@ -9,6 +9,7 @@ interface UseCartDataState {
   subTotal: number;
   total: number;
   addItem: (item: CartItem) => void;
+  addItems: (items: CartItem[]) => void;
   removeItem: (id: string | number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   clearCart: () => void;
@@ -31,10 +32,26 @@ export const useCartData = create<UseCartDataState>()(
           const existingItem = state.items.find((i) => i.id === item.id);
           const updatedItems = existingItem
             ? state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: item.quantity } : i,
+                i.id === item.id ? { ...i, quantity: item.quantity + 1 } : i,
               )
             : [...state.items, item];
 
+          return calculateTotals(updatedItems, state.discounts);
+        });
+      },
+
+      // Adiciona vários itens ao carrinho
+      addItems: (items) => {
+        set((state) => {
+          const updatedItems = [...state.items];
+          items.forEach((item) => {
+            const existingItem = updatedItems.find((i) => i.id === item.id);
+            if (existingItem) {
+              existingItem.quantity = item.quantity;
+            } else {
+              updatedItems.push(item);
+            }
+          });
           return calculateTotals(updatedItems, state.discounts);
         });
       },

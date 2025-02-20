@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
 import { useCartData } from "@/hooks/use-cart-data";
+import { trpc } from "@/trpc/client";
 
 interface CartCardProps {
   isSidebarOpen: boolean;
@@ -17,6 +18,8 @@ interface CartCardProps {
 export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   const [quantity, setQuantity] = useState(product.quantity || 1);
   const { items, updateQuantity, removeItem } = useCartData();
+  const removeItemCart = trpc.cart.removeItem.useMutation();
+  const updateItemCart = trpc.cart.updateItem.useMutation();
 
   useEffect(() => {
     updateQuantity(product.id, quantity);
@@ -26,7 +29,18 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
     setQuantity(items.find((item) => item.id === product.id)?.quantity || 1);
   }, [items, product.id]);
 
+  const handleQuantity = (quantity: number) => {
+    setQuantity(quantity);
+    updateItemCart.mutate({
+      productId: product.id,
+      quantity,
+    });
+  };
+
   const handleRemoveProduct = () => {
+    removeItemCart.mutate({
+      productId: product.id,
+    });
     removeItem(product.id);
   };
 
@@ -67,7 +81,8 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           <div className="flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1">
             <Button
               className="size-5 rounded-full p-0"
-              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              onClick={() => handleQuantity(Math.max(1, quantity - 1))}
+              disabled={removeItemCart.isPending || updateItemCart.isPending}
             >
               <FaMinus className="size-3" />
             </Button>
@@ -76,7 +91,8 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
             </p>
             <Button
               className="size-5 rounded-full p-0"
-              onClick={() => setQuantity((prev) => prev + 1)}
+              onClick={() => handleQuantity(Math.max(1, quantity + 1))}
+              disabled={removeItemCart.isPending || updateItemCart.isPending}
             >
               <FaPlus className="size-3" />
             </Button>
@@ -86,6 +102,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
               variant="outline"
               className="size-7 h-auto rounded-full p-0 text-xs font-semibold"
               onClick={handleRemoveProduct}
+              disabled={removeItemCart.isPending || updateItemCart.isPending}
             >
               <FaTrash className="size-[14px] text-primary" />
             </Button>

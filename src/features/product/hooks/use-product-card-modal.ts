@@ -1,6 +1,5 @@
+import { Product } from "@/db/schema/products";
 import { create } from "zustand";
-
-import { Product } from "@/db/schema/product";
 
 interface ProductCardModalState {
   product: Product | null;

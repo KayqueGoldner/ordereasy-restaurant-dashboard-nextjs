@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { TRPCProvider } from "@/trpc/client";
+import { Toaster } from "@/components/ui/sonner";
 
 const font = Poppins({
   weight: ["300", "400", "500", "600", "700"],
@@ -26,6 +27,7 @@ export default function RootLayout({
         <TRPCProvider>
           <NuqsAdapter>
             <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
+            <Toaster />
           </NuqsAdapter>
         </TRPCProvider>
       </body>

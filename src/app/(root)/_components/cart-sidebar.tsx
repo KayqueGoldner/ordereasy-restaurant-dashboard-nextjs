@@ -4,7 +4,7 @@ import { FaCartShopping, FaCheck } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
 import { LuBadgePercent } from "react-icons/lu";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCartData } from "@/hooks/use-cart-data";
+import { DiscountCodes } from "@/data/discount-codes";
 
 import { CartCard } from "./cart-card";
-import { DiscountCodes } from "@/data/discount-codes";
+import { trpc } from "@/trpc/client";
 
 interface CartSidebarProps {
   className?: string;
@@ -30,8 +31,16 @@ interface CartSidebarProps {
 export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
   const [discountCode, setDiscountCode] = useState("");
   const { isOpen, onClose, onOpen } = useCartSidebar();
-  const { items, totalDiscount, subTotal, tax, total, applyDiscountCode } =
-    useCartData();
+  const {
+    addItems,
+    items,
+    totalDiscount,
+    subTotal,
+    tax,
+    total,
+    applyDiscountCode,
+  } = useCartData();
+  const [data] = trpc.cart.getData.useSuspenseQuery();
 
   const handleSidebar = () => {
     if (isOpen) {
@@ -60,6 +69,18 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
 
     setDiscountCode("");
   };
+
+  useEffect(() => {
+    const newItems = data.map((item) => ({
+      id: item.products.id,
+      image: item.products.imageUrl,
+      name: item.products.name as string,
+      price: item.products.price,
+      quantity: item.cart_items.quantity,
+    }));
+
+    addItems(newItems);
+  }, [addItems, data]);
 
   const collapseSidebar = !isOpen && isMobile === false;
 

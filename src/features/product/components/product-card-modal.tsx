@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { useEffect, useState } from "react";
+import { Loader2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -14,28 +16,44 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCartData } from "@/hooks/use-cart-data";
+import { trpc } from "@/trpc/client";
 
 import { useProductCardModal } from "../hooks/use-product-card-modal";
 
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
   const { product, closeModal } = useProductCardModal();
-  const { addItem } = useCartData();
+  const { addItem, items } = useCartData();
+
+  const addToCart = trpc.cart.addItem.useMutation({
+    onSuccess: () => {
+      toast.success("Product added to cart!");
+    },
+    onError: () => {
+      toast.error("Failed to add product to the cart.");
+    },
+  });
 
   useEffect(() => {
-    setQuantity(1);
-  }, [product]);
+    setQuantity(items.find((item) => item.id === product?.id)?.quantity || 1);
+  }, [product, items]);
 
   if (!product) return null;
 
-  const handlePlaceOrder = () => {
+  const handleAddToCart = () => {
     addItem({
       id: product.id,
       image: product.imageUrl,
-      name: product.name,
+      name: product.name as string,
       price: product.price,
       quantity,
     });
+
+    addToCart.mutate({
+      productId: product.id,
+    });
+
+    toast("Adding product to cart...");
   };
 
   return (
@@ -86,8 +104,19 @@ export const ProductCardModal = () => {
             </div>
           </div>
         </div>
-        <Button className="h-14 w-full rounded-none" onClick={handlePlaceOrder}>
-          Add to cart
+        <Button
+          className="h-14 w-full rounded-none"
+          onClick={handleAddToCart}
+          disabled={addToCart.isPending}
+        >
+          {addToCart.isPending ? (
+            <>
+              <Loader2Icon className="size-4 animate-spin" />
+              Adding to cart...
+            </>
+          ) : (
+            <>Add to cart</>
+          )}
         </Button>
       </DialogContent>
     </Dialog>

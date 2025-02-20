@@ -7,6 +7,7 @@ import { ProductsList } from "./_components/products-list";
 
 export default function Home() {
   void trpc.products.getMany.prefetch();
+  void trpc.cart.getData.prefetch();
 
   return (
     <HydrateClient>
