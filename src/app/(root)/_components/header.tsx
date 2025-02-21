@@ -5,8 +5,8 @@ import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
 import { SignInForm } from "@/components/sign-in-form";
 import { UserButton } from "@/components/user-button";
+import { CartSidebarMobile } from "@/features/cart/components/cart-sidebar";
 
-import { CartSidebarMobile } from "./cart-sidebar";
 import { NavigationMenu } from "./navigation-menu";
 
 const HeaderCalendar = dynamic(

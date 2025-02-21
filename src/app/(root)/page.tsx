@@ -1,7 +1,7 @@
 import { HydrateClient, trpc } from "@/trpc/server";
+import { CartSidebar } from "@/features/cart/components/cart-sidebar";
 
 import { FilterNav } from "./_components/filter-nav";
-import { CartSidebar } from "./_components/cart-sidebar";
 import { Header } from "./_components/header";
 import { ProductsList } from "./_components/products-list";
 
