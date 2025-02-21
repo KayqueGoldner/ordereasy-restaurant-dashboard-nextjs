@@ -29,8 +29,8 @@ export const ProductCardModal = () => {
     onSuccess: () => {
       toast.success("Product added to cart!");
     },
-    onError: () => {
-      toast.error("Failed to add product to the cart.");
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
@@ -51,9 +51,8 @@ export const ProductCardModal = () => {
 
     addToCart.mutate({
       productId: product.id,
+      price: product.price,
     });
-
-    toast("Adding product to cart...");
   };
 
   return (

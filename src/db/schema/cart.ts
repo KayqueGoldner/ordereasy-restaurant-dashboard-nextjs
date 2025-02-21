@@ -5,6 +5,8 @@ import {
   timestamp,
   integer,
   primaryKey,
+  numeric,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { products } from "@/db/schema/products";
 
@@ -12,6 +14,7 @@ export const cart = pgTable("cart", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  discounts: jsonb("discounts").default([]).notNull().$type<Discounts[]>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -32,6 +35,7 @@ export const cartItems = pgTable(
     productId: text("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
+    price: numeric("price").notNull(),
     quantity: integer("quantity").default(1).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

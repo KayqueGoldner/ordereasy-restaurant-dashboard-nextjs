@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa6";
 import Image from "next/image";
 
@@ -16,21 +15,18 @@ interface CartCardProps {
 }
 
 export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
-  const [quantity, setQuantity] = useState(product.quantity || 1);
-  const { items, updateQuantity, removeItem } = useCartData();
+  const { updateQuantity, removeItem, items } = useCartData();
   const removeItemCart = trpc.cart.removeItem.useMutation();
   const updateItemCart = trpc.cart.updateItem.useMutation();
 
-  useEffect(() => {
-    updateQuantity(product.id, quantity);
-  }, [quantity, product.id, updateQuantity]);
-
-  useEffect(() => {
-    setQuantity(items.find((item) => item.id === product.id)?.quantity || 1);
-  }, [items, product.id]);
-
   const handleQuantity = (quantity: number) => {
-    setQuantity(quantity);
+    const itemToUpdate = items.find((item) => item.id === product.id);
+
+    if (!itemToUpdate) return;
+
+    itemToUpdate.quantity = quantity;
+
+    updateQuantity(product.id, quantity);
     updateItemCart.mutate({
       productId: product.id,
       quantity,
@@ -38,9 +34,12 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   };
 
   const handleRemoveProduct = () => {
-    removeItemCart.mutate({
-      productId: product.id,
-    });
+    removeItemCart.mutate(
+      {
+        productId: product.id,
+      },
+      {},
+    );
     removeItem(product.id);
   };
 
@@ -81,17 +80,17 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           <div className="flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1">
             <Button
               className="size-5 rounded-full p-0"
-              onClick={() => handleQuantity(Math.max(1, quantity - 1))}
+              onClick={() => handleQuantity(Math.max(1, product.quantity - 1))}
               disabled={removeItemCart.isPending || updateItemCart.isPending}
             >
               <FaMinus className="size-3" />
             </Button>
             <p className="min-w-5 text-center text-sm font-semibold">
-              {quantity}
+              {product.quantity}
             </p>
             <Button
               className="size-5 rounded-full p-0"
-              onClick={() => handleQuantity(Math.max(1, quantity + 1))}
+              onClick={() => handleQuantity(Math.max(1, product.quantity + 1))}
               disabled={removeItemCart.isPending || updateItemCart.isPending}
             >
               <FaPlus className="size-3" />

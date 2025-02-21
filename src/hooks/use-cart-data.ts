@@ -3,16 +3,17 @@ import { persist } from "zustand/middleware";
 
 interface UseCartDataState {
   items: CartItem[];
-  discounts: { code: string; amount: number }[];
-  totalDiscount: number;
-  tax: number;
-  subTotal: number;
-  total: number;
+  discounts: Discounts[];
+  totalDiscount: string;
+  tax: string;
+  subTotal: string;
+  total: string;
   addItem: (item: CartItem) => void;
   addItems: (items: CartItem[]) => void;
   removeItem: (id: string | number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   clearCart: () => void;
+  updateDiscounts: (discounts: Discounts[]) => void;
   applyDiscountCode: (code: string, discountAmount: number) => void;
 }
 
@@ -21,10 +22,10 @@ export const useCartData = create<UseCartDataState>()(
     (set) => ({
       items: [],
       discounts: [],
-      totalDiscount: 0,
-      subTotal: 0,
-      tax: 0,
-      total: 0,
+      totalDiscount: "0",
+      subTotal: "0",
+      tax: "0",
+      total: "0",
 
       // Adiciona um item ao carrinho
       addItem: (item) => {
@@ -32,11 +33,11 @@ export const useCartData = create<UseCartDataState>()(
           const existingItem = state.items.find((i) => i.id === item.id);
           const updatedItems = existingItem
             ? state.items.map((i) =>
-                i.id === item.id ? { ...i, quantity: item.quantity + 1 } : i,
+                i.id === item.id ? { ...i, quantity: item.quantity } : i,
               )
             : [...state.items, item];
 
-          return calculateTotals(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.discounts);
         });
       },
 
@@ -52,7 +53,7 @@ export const useCartData = create<UseCartDataState>()(
               updatedItems.push(item);
             }
           });
-          return calculateTotals(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.discounts);
         });
       },
 
@@ -60,7 +61,7 @@ export const useCartData = create<UseCartDataState>()(
       removeItem: (id) => {
         set((state) => {
           const updatedItems = state.items.filter((item) => item.id !== id);
-          return calculateTotals(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.discounts);
         });
       },
 
@@ -70,7 +71,7 @@ export const useCartData = create<UseCartDataState>()(
           const updatedItems = state.items.map((item) =>
             item.id === id ? { ...item, quantity } : item,
           );
-          return calculateTotals(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.discounts);
         });
       },
 
@@ -78,10 +79,14 @@ export const useCartData = create<UseCartDataState>()(
       clearCart: () =>
         set({
           items: [],
-          subTotal: 0,
-          tax: 0,
-          total: 0,
+          subTotal: "0",
+          tax: "0",
+          total: "0",
         }),
+
+      updateDiscounts: (newDiscounts: Discounts[]) => {
+        set((state) => calculateCartInfo(state.items, newDiscounts));
+      },
 
       // Aplica um código de desconto, garantindo que ele não seja reutilizado
       applyDiscountCode: (code, discountAmount) => {
@@ -93,7 +98,7 @@ export const useCartData = create<UseCartDataState>()(
             ...state.discounts,
             { code, amount: discountAmount },
           ];
-          return calculateTotals(state.items, updatedDiscounts);
+          return calculateCartInfo(state.items, updatedDiscounts);
         });
       },
     }),
@@ -104,7 +109,7 @@ export const useCartData = create<UseCartDataState>()(
 );
 
 // Função auxiliar para recalcular subtotal, imposto e total
-const calculateTotals = (
+export const calculateCartInfo = (
   items: CartItem[],
   discounts: { code: string; amount: number }[],
 ) => {
@@ -125,9 +130,9 @@ const calculateTotals = (
   return {
     items,
     discounts,
-    totalDiscount: parseFloat(totalDiscount.toFixed(2)),
-    subTotal: parseFloat(subTotal.toFixed(2)),
-    tax: parseFloat(tax.toFixed(2)),
-    total: parseFloat(total.toFixed(2)),
+    totalDiscount: totalDiscount.toFixed(2).toString(),
+    subTotal: subTotal.toFixed(2),
+    tax: tax.toFixed(2),
+    total: total.toFixed(2),
   };
 };

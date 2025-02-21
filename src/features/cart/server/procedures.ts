@@ -2,39 +2,89 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 
 import { db } from "@/db/drizzle";
-import { cartItems } from "@/db/schema/cart";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
+import { cart, cartItems } from "@/db/schema/cart";
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from "@/trpc/init";
 import { users } from "@/db/schema/users";
 import { products } from "@/db/schema/products";
 import { TRPCError } from "@trpc/server";
 
 export const cartRouter = createTRPCRouter({
-  getData: protectedProcedure.query(async ({ ctx }) => {
-    const { id: userId } = ctx.user;
+  getData: baseProcedure.query(async ({ ctx }) => {
+    const user = ctx.authUser;
+
+    if (!user) {
+      return {
+        cart: undefined,
+        items: undefined,
+      };
+    }
 
     const [dbUser] = await db
       .select()
       .from(users)
-      .where(eq(users.id, userId as string));
+      .where(eq(users.id, user.id as string));
 
-    const data = await db
+    const [cartData] = await db
+      .select()
+      .from(cart)
+      .where(eq(cart.id, dbUser.cartId as string));
+
+    const cartItemsData = await db
       .select()
       .from(cartItems)
       .where(eq(cartItems.cartId, dbUser.cartId as string))
       .innerJoin(products, eq(cartItems.productId, products.id));
 
-    return data;
+    return {
+      cart: cartData,
+      items: cartItemsData,
+    };
   }),
+
+  updateData: protectedProcedure
+    .input(
+      z.object({
+        discounts: z
+          .object({
+            code: z.string(),
+            amount: z.number(),
+          })
+          .array()
+          .optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { discounts } = input;
+
+      const [dbUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId as string));
+
+      const data = await db
+        .update(cart)
+        .set({ discounts })
+        .where(eq(cart.id, dbUser.cartId as string))
+        .returning();
+
+      return { data };
+    }),
 
   addItem: protectedProcedure
     .input(
       z.object({
         productId: z.string(),
+        price: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { productId } = input;
+      const { productId, price } = input;
 
       const [dbUser] = await db
         .select()
@@ -71,6 +121,7 @@ export const cartRouter = createTRPCRouter({
         .insert(cartItems)
         .values({
           cartId: dbUser.cartId as string,
+          price,
           productId,
           quantity: 1,
         })

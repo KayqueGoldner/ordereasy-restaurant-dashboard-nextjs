@@ -1,14 +1,12 @@
 "use client";
 
-import { FaCartShopping, FaCheck } from "react-icons/fa6";
+import { FaCartShopping } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
-import { LuBadgePercent } from "react-icons/lu";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 import {
@@ -18,10 +16,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useCartData } from "@/hooks/use-cart-data";
-import { DiscountCodes } from "@/data/discount-codes";
+import { trpc } from "@/trpc/client";
 
 import { CartCard } from "./cart-card";
-import { trpc } from "@/trpc/client";
+import { CartDiscountInput } from "./cart-discount-input";
 
 interface CartSidebarProps {
   className?: string;
@@ -29,7 +27,6 @@ interface CartSidebarProps {
 }
 
 export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
-  const [discountCode, setDiscountCode] = useState("");
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const {
     addItems,
@@ -38,7 +35,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     subTotal,
     tax,
     total,
-    applyDiscountCode,
+    updateDiscounts,
   } = useCartData();
   const [data] = trpc.cart.getData.useSuspenseQuery();
 
@@ -50,37 +47,22 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     }
   };
 
-  const handleDiscountCode = () => {
-    const validateDiscountCode = DiscountCodes.find(
-      (code) => code.code === discountCode,
-    );
-
-    if (validateDiscountCode) {
-      if (new Date(validateDiscountCode.expires) < new Date()) {
-        alert("Code expired.");
-        setDiscountCode("");
-        return;
-      }
-
-      applyDiscountCode(validateDiscountCode.code, validateDiscountCode.amount);
-    } else {
-      alert("Invalid code.");
-    }
-
-    setDiscountCode("");
-  };
-
   useEffect(() => {
-    const newItems = data.map((item) => ({
-      id: item.products.id,
-      image: item.products.imageUrl,
-      name: item.products.name as string,
-      price: item.products.price,
-      quantity: item.cart_items.quantity,
-    }));
+    if (!data.items) return;
+
+    const newItems = data.items.map((item) => {
+      return {
+        id: item.products.id,
+        image: item.products.imageUrl,
+        name: item.products.name as string,
+        price: item.products.price,
+        quantity: item.cart_items.quantity,
+      };
+    });
 
     addItems(newItems);
-  }, [addItems, data]);
+    updateDiscounts(data.cart?.discounts || []);
+  }, [addItems, data, updateDiscounts]);
 
   const collapseSidebar = !isOpen && isMobile === false;
 
@@ -183,25 +165,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
         </div>
         <div className="flex items-center justify-center gap-1">
           <div className={cn("flex flex-1 gap-2", collapseSidebar && "hidden")}>
-            <div className="relative h-12 flex-1 rounded-full border border-green-600">
-              <Input
-                placeholder="Discount Code"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                className="absolute inset-x-0 h-12 rounded-full border border-transparent bg-transparent uppercase placeholder:capitalize"
-              />
-              <Button
-                className="absolute right-1 top-1/2 size-10 -translate-y-1/2 rounded-full bg-green-600 p-0 hover:bg-green-600/90"
-                onClick={handleDiscountCode}
-                disabled={!discountCode}
-              >
-                {discountCode ? (
-                  <FaCheck className="size-4 text-white" />
-                ) : (
-                  <LuBadgePercent className="size-4 text-white" />
-                )}
-              </Button>
-            </div>
+            <CartDiscountInput />
           </div>
           <Button
             className={cn(

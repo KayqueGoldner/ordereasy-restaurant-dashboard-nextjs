@@ -5,3 +5,8 @@ interface CartItem {
   price: string;
   quantity: number;
 }
+
+interface Discounts {
+  code: string;
+  amount: number;
+}
