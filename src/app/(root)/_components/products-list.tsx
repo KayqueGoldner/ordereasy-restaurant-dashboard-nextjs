@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { TbShoppingBagSearch } from "react-icons/tb";
 import { RiExpandDiagonalSLine, RiCollapseDiagonalLine } from "react-icons/ri";
 import { MdOutlineFilterList, MdOutlineFilterListOff } from "react-icons/md";
+import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -16,13 +17,32 @@ import { cn } from "@/lib/utils";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 import { ProductCardModal } from "@/features/product/components/product-card-modal";
 import { ProductCard } from "@/features/product/components/product-card";
+import { PRODUCTS_LIST_LIMIT } from "@/constants";
+import { InfiniteScroll } from "@/components/infinite-scroll";
 
 export const ProductsList = () => {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ErrorBoundary fallback={<p>Error</p>}>
+        <ProductsListSuspense />
+      </ErrorBoundary>
+    </Suspense>
+  );
+};
+
+export const ProductsListSuspense = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { isExpanded, onCollapse, onExpand } = useExpandHome();
   const { onClose, onOpen } = useCartSidebar();
 
-  const [data] = trpc.products.getMany.useSuspenseQuery();
+  const [data, query] = trpc.products.getMany.useSuspenseInfiniteQuery(
+    {
+      limit: PRODUCTS_LIST_LIMIT,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    },
+  );
 
   const handleExpand = () => {
     if (isExpanded) {
@@ -87,13 +107,21 @@ export const ProductsList = () => {
       </div>
       <ScrollArea className="h-full flex-1 pr-5">
         <ul className="grid h-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
-          {data.map((product) => (
-            <li key={product.id} className="w-full">
-              <ProductCard product={product} />
-            </li>
-          ))}
+          {data.pages
+            .flatMap((page) => page.items)
+            .map((product) => (
+              <li key={product.id} className="w-full">
+                <ProductCard product={product} />
+              </li>
+            ))}
         </ul>
       </ScrollArea>
+      <InfiniteScroll
+        isManual={true}
+        hasNextPage={query.hasNextPage}
+        isFetchingNextPage={query.isFetchingNextPage}
+        fetchNextPage={query.fetchNextPage}
+      />
     </main>
   );
 };
