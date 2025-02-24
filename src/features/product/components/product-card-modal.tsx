@@ -20,13 +20,19 @@ export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
   const { product, closeModal } = useProductCardModal();
   const { addItem, items } = useCartData();
+  const trpcUtils = trpc.useUtils();
 
   const addToCart = trpc.cart.addItem.useMutation({
     onSuccess: () => {
       toast.success("Product added to cart!");
+      trpcUtils.cart.getData.invalidate();
     },
     onError: (error) => {
-      toast.error(error.message);
+      if (error.data?.code === "UNAUTHORIZED") {
+        toast.error("You must be logged to save your cart!");
+      } else {
+        toast.error(error.message);
+      }
     },
   });
 
