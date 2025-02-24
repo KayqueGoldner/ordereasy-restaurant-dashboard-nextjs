@@ -1,4 +1,3 @@
-import { cart } from "@/db/schema/cart";
 import { relations } from "drizzle-orm";
 import {
   boolean,
@@ -7,8 +6,14 @@ import {
   text,
   primaryKey,
   integer,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
+
+import { cart } from "@/db/schema/cart";
+
+export const userRole = pgEnum("user_role", ["ADMIN", "CUSTOMER"]);
+export type UserRole = (typeof userRole.enumValues)[number];
 
 export const users = pgTable("user", {
   id: text("id")
@@ -19,6 +24,7 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   cartId: text("cart_id").references(() => cart.id, { onDelete: "set null" }),
+  role: userRole("role").default("CUSTOMER").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

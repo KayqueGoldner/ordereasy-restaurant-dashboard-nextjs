@@ -22,7 +22,7 @@ export const Header = async () => {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-2">
       <div className="flex items-center gap-3">
-        <NavigationMenu />
+        {session?.user && <NavigationMenu user={session.user} />}
         <Logo />
         <Separator className="h-px w-10" />
         <HeaderCalendar />
