@@ -6,17 +6,13 @@ import { useEffect, useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { trpc } from "@/trpc/client";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCartData } from "@/hooks/use-cart-data";
-import { trpc } from "@/trpc/client";
+import { ResponsiveModal } from "@/components/responsive-modal";
+import { formatCategory } from "@/lib/utils";
 
 import { useProductCardModal } from "../hooks/use-product-card-modal";
 
@@ -56,12 +52,16 @@ export const ProductCardModal = () => {
   };
 
   return (
-    <Dialog open={!!product} onOpenChange={closeModal}>
-      <DialogContent className="gap-1 overflow-hidden !rounded-2xl border-none p-0">
+    <ResponsiveModal
+      title="Product Details"
+      titleClassName="text-center"
+      headerClassName="pt-3"
+      contentClassName="gap-1 overflow-hidden !rounded-2xl border-none p-0"
+      open={!!product}
+      onOpenChange={closeModal}
+    >
+      <div className="overflow-y-auto">
         <div className="px-4 py-3">
-          <DialogHeader className="p-0">
-            <DialogTitle className="text-center">Product Details</DialogTitle>
-          </DialogHeader>
           <div className="mt-2">
             <div className="flex items-center justify-center rounded-xl bg-neutral-100">
               <Image
@@ -73,7 +73,9 @@ export const ProductCardModal = () => {
               />
             </div>
             <div className="mt-1.5 space-y-1.5">
-              <Badge className="h-5 px-1.5 py-0">{product.category}</Badge>
+              <Badge className="h-5 px-1.5 py-0">
+                {formatCategory(product.category)}
+              </Badge>
               <h1 className="text-xl font-medium">{product.name}</h1>
               <p className="text-sm text-muted-foreground">
                 {product.description}
@@ -117,7 +119,7 @@ export const ProductCardModal = () => {
             <>Add to cart</>
           )}
         </Button>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ResponsiveModal>
   );
 };
