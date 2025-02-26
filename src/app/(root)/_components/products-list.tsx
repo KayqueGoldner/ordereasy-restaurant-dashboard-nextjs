@@ -110,8 +110,11 @@ export const ProductsListSuspense = () => {
           {data.pages
             .flatMap((page) => page.items)
             .map((product) => (
-              <li key={product.id} className="w-full">
-                <ProductCard product={product} />
+              <li key={product.products.id} className="w-full">
+                <ProductCard
+                  product={product.products}
+                  category={product.categories!}
+                />
               </li>
             ))}
         </ul>

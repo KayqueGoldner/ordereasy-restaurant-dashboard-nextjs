@@ -12,13 +12,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCartData } from "@/hooks/use-cart-data";
 import { ResponsiveModal } from "@/components/responsive-modal";
-import { formatCategory } from "@/lib/utils";
 
 import { useProductCardModal } from "../hooks/use-product-card-modal";
 
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
-  const { product, closeModal } = useProductCardModal();
+  const { product: productCard, closeModal } = useProductCardModal();
   const { addItem, items } = useCartData();
   const trpcUtils = trpc.useUtils();
 
@@ -37,10 +36,14 @@ export const ProductCardModal = () => {
   });
 
   useEffect(() => {
-    setQuantity(items.find((item) => item.id === product?.id)?.quantity || 1);
-  }, [product, items]);
+    setQuantity(
+      items.find((item) => item.id === productCard?.product?.id)?.quantity || 1,
+    );
+  }, [productCard, items]);
 
-  if (!product) return null;
+  if (!productCard) return null;
+
+  const { product, categoryName } = productCard;
 
   const handleAddToCart = () => {
     addItem({
@@ -79,9 +82,7 @@ export const ProductCardModal = () => {
               />
             </div>
             <div className="mt-1.5 space-y-1.5">
-              <Badge className="h-5 px-1.5 py-0">
-                {formatCategory(product.category)}
-              </Badge>
+              <Badge className="h-5 px-1.5 py-0">{categoryName}</Badge>
               <h1 className="text-xl font-medium">{product.name}</h1>
               <p className="text-sm text-muted-foreground">
                 {product.description}

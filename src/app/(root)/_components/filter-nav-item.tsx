@@ -1,34 +1,37 @@
 "use client";
 
-import { FaQuestion } from "react-icons/fa6";
 import { useQueryState } from "nuqs";
 
 import { useExpandHome } from "@/hooks/use-expand-home";
 import { cn } from "@/lib/utils";
+import { Category } from "@/db/schema/categories";
 
 interface FilterNavItemProps {
-  itemCategory: string;
+  category: Category;
+  quantity: number;
 }
 
-export const FilterNavItem = ({ itemCategory }: FilterNavItemProps) => {
-  const [category, setCategory] = useQueryState("category");
+export const FilterNavItem = ({ category, quantity }: FilterNavItemProps) => {
+  const [categoryQuery, setCategoryQuery] = useQueryState("category", {
+    history: "push",
+  });
   const { isExpanded } = useExpandHome();
 
   return (
     <div
       className={cn(
-        "group flex h-28 w-32 cursor-pointer flex-row flex-wrap gap-x-2 rounded-xl border border-transparent bg-white p-3 transition-all duration-500",
-        category === itemCategory && "border-primary",
-        isExpanded && "h-14 w-48 p-2",
+        "group flex h-28 w-max min-w-36 cursor-pointer flex-col gap-2 rounded-xl border border-transparent bg-white p-3 transition-all duration-500 hover:bg-primary/10",
+        categoryQuery === category.id && "border-primary",
+        isExpanded && "h-14 w-48 flex-row p-2",
       )}
-      onClick={() => setCategory(itemCategory)}
+      onClick={() => setCategoryQuery(category.id)}
     >
-      <div className="grid size-6 shrink-0 place-items-center rounded-full border border-transparent bg-primary transition-all duration-300 group-hover:border-primary group-hover:bg-transparent">
-        <FaQuestion className="size-4 text-white transition-colors duration-300 group-hover:text-primary" />
+      <div className="grid size-7 shrink-0 place-items-center rounded-full border border-primary transition-all duration-300">
+        {category.icon}
       </div>
       <div>
-        <h1 className="font-medium">{itemCategory}</h1>
-        <h3 className="text-sm text-muted-foreground">100 Items</h3>
+        <h1 className="text-sm font-medium">{category.name}</h1>
+        <h3 className="text-sm text-muted-foreground">{quantity} Items</h3>
       </div>
     </div>
   );

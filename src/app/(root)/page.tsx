@@ -11,6 +11,7 @@ export default function Home() {
     limit: PRODUCTS_LIST_LIMIT,
   });
   void trpc.cart.getData.prefetch();
+  void trpc.categories.getMany.prefetch();
 
   return (
     <HydrateClient>

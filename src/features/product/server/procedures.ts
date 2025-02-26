@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { desc, lt } from "drizzle-orm";
+import { desc, eq, lt } from "drizzle-orm";
 
 import { db } from "@/db/drizzle";
 import { products } from "@/db/schema/products";
 import { baseProcedure, createTRPCRouter } from "@/trpc/init";
+import { categories } from "@/db/schema/categories";
 
 export const productsRouter = createTRPCRouter({
   getMany: baseProcedure
@@ -25,6 +26,7 @@ export const productsRouter = createTRPCRouter({
         .select()
         .from(products)
         .where(cursor ? lt(products.id, cursor.id) : undefined)
+        .leftJoin(categories, eq(products.categoryId, categories.id))
         .orderBy(desc(products.updatedAt), desc(products.id))
         .limit(limit + 1);
 
@@ -33,8 +35,8 @@ export const productsRouter = createTRPCRouter({
       const lastItem = items[items.length - 1];
       const nextCursor = hasMore
         ? {
-            id: lastItem.id,
-            updatedAt: lastItem.updatedAt,
+            id: lastItem.products.id,
+            updatedAt: lastItem.products.updatedAt,
           }
         : null;
 
