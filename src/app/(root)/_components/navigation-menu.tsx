@@ -53,12 +53,12 @@ const LINKS = {
     {
       label: "Report",
       icon: <FaChartPie className="size-[18px]" />,
-      url: "/report",
+      url: "/admin/report",
     },
     {
       label: "Inventory",
       icon: <MdInventory className="size-[18px]" />,
-      url: "/inventory",
+      url: "/admin/inventory",
     },
   ],
 };

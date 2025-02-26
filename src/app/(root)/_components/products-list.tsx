@@ -105,7 +105,7 @@ export const ProductsListSuspense = () => {
           <div className="size-full rounded-xl border">filters</div>
         </div>
       </div>
-      <ScrollArea className="h-full flex-1 pr-5">
+      <ScrollArea className="mt-2.5 h-full flex-1 pr-5">
         <ul className="grid h-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
           {data.pages
             .flatMap((page) => page.items)
