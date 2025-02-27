@@ -27,7 +27,7 @@ export const productsRouter = createTRPCRouter({
         .from(products)
         .where(cursor ? lt(products.id, cursor.id) : undefined)
         .leftJoin(categories, eq(products.categoryId, categories.id))
-        .orderBy(desc(products.updatedAt), desc(products.id))
+        .orderBy(desc(products.id))
         .limit(limit + 1);
 
       const hasMore = data.length > limit;

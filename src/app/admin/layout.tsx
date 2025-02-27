@@ -19,7 +19,9 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               <HeaderCalendar />
             </div>
           </header>
-          <main className="size-full rounded-xl bg-white p-3">{children}</main>
+          <main className="size-full overflow-y-auto rounded-xl bg-white p-3">
+            {children}
+          </main>
         </div>
       </SidebarProvider>
     </div>
