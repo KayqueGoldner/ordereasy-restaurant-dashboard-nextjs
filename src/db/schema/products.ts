@@ -7,6 +7,11 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
 
 import { categories } from "@/db/schema/categories";
 
@@ -27,6 +32,10 @@ export const products = pgTable("products", {
 });
 
 export type Product = typeof products.$inferSelect;
+
+export const productInsertSchema = createInsertSchema(products);
+export const productSelectSchema = createSelectSchema(products);
+export const productUpdateSchema = createUpdateSchema(products);
 
 export const productsRelations = relations(products, ({ one }) => ({
   category: one(categories, {

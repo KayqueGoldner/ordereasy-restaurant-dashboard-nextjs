@@ -80,11 +80,12 @@ export const cartRouter = createTRPCRouter({
       z.object({
         productId: z.string(),
         price: z.string(),
+        quantity: z.number(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { productId, price } = input;
+      const { productId, price, quantity } = input;
 
       const [dbUser] = await db
         .select()
@@ -123,7 +124,7 @@ export const cartRouter = createTRPCRouter({
           cartId: dbUser.cartId as string,
           price,
           productId,
-          quantity: 1,
+          quantity,
         })
         .returning();
 

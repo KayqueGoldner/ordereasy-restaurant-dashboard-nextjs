@@ -57,6 +57,7 @@ export const ProductCardModal = () => {
     addToCart.mutate({
       productId: product.id,
       price: product.price,
+      quantity,
     });
   };
 
