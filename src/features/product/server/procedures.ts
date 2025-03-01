@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, ilike, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { db } from "@/db/drizzle";
@@ -22,16 +22,24 @@ export const productsRouter = createTRPCRouter({
           })
           .nullish(),
         limit: z.number().min(1).max(100),
+        categoryId: z.string().optional(),
+        query: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { cursor, limit } = input;
+      const { cursor, limit, categoryId, query } = input;
 
       const data = await db
         .select()
         .from(products)
-        .where(cursor ? lt(products.id, cursor.id) : undefined)
         .leftJoin(categories, eq(products.categoryId, categories.id))
+        .where(
+          and(
+            cursor ? lt(products.id, cursor.id) : undefined,
+            categoryId ? eq(products.categoryId, categoryId) : undefined,
+            query ? ilike(products.name, `%${query}%`) : undefined,
+          ),
+        )
         .orderBy(desc(products.id))
         .limit(limit + 1);
 

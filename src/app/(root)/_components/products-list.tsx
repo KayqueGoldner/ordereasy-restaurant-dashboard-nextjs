@@ -1,14 +1,12 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { TbShoppingBagSearch } from "react-icons/tb";
 import { RiExpandDiagonalSLine, RiCollapseDiagonalLine } from "react-icons/ri";
 import { MdOutlineFilterList, MdOutlineFilterListOff } from "react-icons/md";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useExpandHome } from "@/hooks/use-expand-home";
 import { Separator } from "@/components/ui/separator";
@@ -20,24 +18,36 @@ import { ProductCard } from "@/features/product/components/product-card";
 import { PRODUCTS_LIST_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
-export const ProductsList = () => {
+import { HeaderSearch } from "./header-search";
+
+interface ProductsListProps {
+  categoryId?: string;
+  query?: string;
+}
+
+export const ProductsList = ({ categoryId, query }: ProductsListProps) => {
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <ErrorBoundary fallback={<p>Error</p>}>
-        <ProductsListSuspense />
+        <ProductsListSuspense categoryId={categoryId} query={query} />
       </ErrorBoundary>
     </Suspense>
   );
 };
 
-export const ProductsListSuspense = () => {
+export const ProductsListSuspense = ({
+  categoryId,
+  query,
+}: ProductsListProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { isExpanded, onCollapse, onExpand } = useExpandHome();
   const { onClose, onOpen } = useCartSidebar();
 
-  const [data, query] = trpc.products.getMany.useSuspenseInfiniteQuery(
+  const [data, state] = trpc.products.getMany.useSuspenseInfiniteQuery(
     {
       limit: PRODUCTS_LIST_LIMIT,
+      categoryId,
+      query,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -64,15 +74,7 @@ export const ProductsListSuspense = () => {
         )}
       >
         <div className="-my-2 flex h-12 w-full items-center gap-2 py-1.5">
-          <div className="h-full flex-1 rounded-full border border-primary/40">
-            <Input
-              placeholder="Find your favorite meal."
-              className="size-full rounded-full border-0"
-            />
-          </div>
-          <Button className="size-9 rounded-full p-0">
-            <TbShoppingBagSearch className="size-5" />
-          </Button>
+          <HeaderSearch />
           <Separator orientation="vertical" className="mx-3" />
           <Hint text={isFilterOpen ? "Close filter" : "Open filter"} asChild>
             <Button
@@ -110,7 +112,16 @@ export const ProductsListSuspense = () => {
           {data.pages
             .flatMap((page) => page.items)
             .map((product) => (
-              <li key={product.products.id} className="w-full">
+              <li
+                key={product.products.id}
+                className={cn(
+                  "w-full",
+                  state.isFetching && "pointer-events-none opacity-80",
+                  state.isFetchingNextPage && "pointer-events-none opacity-80",
+                  state.fetchStatus === "fetching" &&
+                    "pointer-events-none opacity-80",
+                )}
+              >
                 <ProductCard
                   product={product.products}
                   category={product.categories!}
@@ -118,13 +129,13 @@ export const ProductsListSuspense = () => {
               </li>
             ))}
         </ul>
+        <InfiniteScroll
+          isManual={true}
+          hasNextPage={state.hasNextPage}
+          isFetchingNextPage={state.isFetchingNextPage}
+          fetchNextPage={state.fetchNextPage}
+        />
       </ScrollArea>
-      <InfiniteScroll
-        isManual={true}
-        hasNextPage={query.hasNextPage}
-        isFetchingNextPage={query.isFetchingNextPage}
-        fetchNextPage={query.fetchNextPage}
-      />
     </main>
   );
 };
