@@ -1,12 +1,15 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { FaChartPie, FaShop } from "react-icons/fa6";
 import { MdInventory } from "react-icons/md";
+import { Session } from "next-auth";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { UserIcon } from "lucide-react";
 
 const items = [
   {
@@ -33,7 +37,11 @@ const items = [
   },
 ];
 
-export const AdminSidebar = () => {
+interface AdminSidebarProps {
+  session: Session;
+}
+
+export const AdminSidebar = ({ session }: AdminSidebarProps) => {
   return (
     <Sidebar collapsible="icon" className="border-none">
       <SidebarContent className="bg-white">
@@ -60,6 +68,29 @@ export const AdminSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <div className="flex w-full items-center gap-2 rounded-xl border border-neutral-200 px-2 py-1">
+          {session.user.image ? (
+            <Image
+              src={session.user.image}
+              alt={session.user.name || "user image"}
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-max rounded-full border border-neutral-200 p-2">
+              <UserIcon className="size-5" />
+            </div>
+          )}
+          <div className="flex-1">
+            <h1 className="text-sm">{session.user.name}</h1>
+            <h3 className="text-sm capitalize text-muted-foreground">
+              {session.user.role?.toLocaleLowerCase()}
+            </h3>
+          </div>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };

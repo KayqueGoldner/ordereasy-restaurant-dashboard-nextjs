@@ -1,15 +1,24 @@
+import { redirect } from "next/navigation";
+
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
 import { HeaderCalendar } from "@/app/(root)/_components/header-calendar";
 import { AdminSidebar } from "@/app/admin/_components/admin-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth";
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
+  const session = await auth();
+
+  if (!session || session.user.role !== "ADMIN") {
+    return redirect("/");
+  }
+
   return (
     <div className="h-screen w-full p-2">
       <SidebarProvider className="h-full min-h-full overflow-hidden">
-        <AdminSidebar />
+        <AdminSidebar session={session} />
         <div className="flex grow flex-col gap-3">
           <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-2">
             <div className="flex items-center gap-3">

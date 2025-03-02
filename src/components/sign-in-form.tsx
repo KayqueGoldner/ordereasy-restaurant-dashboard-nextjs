@@ -11,11 +11,13 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogOverlay,
 } from "@/components/ui/dialog";
 
 export function SignInForm() {
   return (
     <Dialog>
+      <DialogOverlay />
       <DialogTrigger asChild>
         <Button type="button">Sign in</Button>
       </DialogTrigger>

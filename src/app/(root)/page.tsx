@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth";
 import { HydrateClient, trpc } from "@/trpc/server";
 import { CartSidebar } from "@/features/cart/components/cart-sidebar";
 import { PRODUCTS_LIST_LIMIT } from "@/constants";
@@ -12,6 +13,7 @@ interface HomeProps {
 }
 
 export default async function Home({ searchParams }: HomeProps) {
+  const session = await auth();
   const { categoryId, query } = await searchParams;
 
   void trpc.products.getMany.prefetchInfinite({
@@ -24,16 +26,16 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <HydrateClient>
-      <div className="flex size-full gap-2">
+      <div className="flex size-full gap-1">
         <div className="relative flex size-full flex-col overflow-hidden">
           <ProductCardModal />
           <div className="flex size-full flex-col overflow-hidden p-2">
-            <Header />
+            <Header session={session} />
             <FilterNav />
             <ProductsList categoryId={categoryId} query={query} />
           </div>
         </div>
-        <CartSidebar isMobile={false} />
+        <CartSidebar isMobile={false} session={session} />
       </div>
     </HydrateClient>
   );

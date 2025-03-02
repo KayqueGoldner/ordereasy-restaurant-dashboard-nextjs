@@ -53,7 +53,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
         isSidebarOpen && "h-12",
         productModal?.product
           ? productModal.product.id === product.id
-            ? "opacity-300 bg-gray-100"
+            ? "opacity-300 bg-primary/10"
             : items.find((item) => item.id === productModal.product.id)
               ? "pointer-events-none opacity-50"
               : "opacity-100"
@@ -63,7 +63,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
       <div
         className={cn(
           "flex h-full w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-200 transition-all",
-          isSidebarOpen && "size-full",
+          isSidebarOpen && "size-full rounded-md",
         )}
       >
         <Image
