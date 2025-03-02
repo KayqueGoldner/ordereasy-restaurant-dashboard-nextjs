@@ -3,20 +3,21 @@
 import { FaCartShopping } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
+import { useCartData } from "@/hooks/use-cart-data";
+import { trpc } from "@/trpc/client";
+import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useCartData } from "@/hooks/use-cart-data";
-import { trpc } from "@/trpc/client";
 
 import { CartCard } from "./cart-card";
 import { CartDiscountInput } from "./cart-discount-input";
@@ -37,6 +38,10 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     total,
     updateDiscounts,
   } = useCartData();
+  const { product: ProductModal } = useProductCardModal();
+  const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
   const [data] = trpc.cart.getData.useSuspenseQuery();
 
   const handleSidebar = () => {
@@ -64,6 +69,15 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     updateDiscounts(data.cart?.discounts || []);
   }, [addItems, data, updateDiscounts]);
 
+  useEffect(() => {
+    if (ProductModal && itemRefs.current[ProductModal.product.id]) {
+      itemRefs.current[ProductModal.product.id]?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [ProductModal, items]);
+
   const collapseSidebar = !isOpen && isMobile === false;
 
   return (
@@ -71,6 +85,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
       className={cn(
         "hidden size-full max-w-md shrink-0 flex-col gap-1 overflow-hidden rounded-xl bg-white px-3 py-2 transition-all duration-700 lg:flex",
         collapseSidebar && "w-16 items-center px-0 transition-all duration-300",
+        isOpen && "pointer-events-auto",
         className,
       )}
     >
@@ -94,6 +109,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
         </Button>
       </div>
       <ScrollArea
+        ref={scrollAreaRef}
         className={cn("flex-1 py-5 pr-3", collapseSidebar && "w-16 px-1.5")}
       >
         <ul
@@ -103,11 +119,15 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
         >
           {items.length > 0 ? (
             items.map((product) => (
-              <CartCard
+              <li
                 key={product.id}
-                product={product}
-                isSidebarOpen={collapseSidebar}
-              />
+                ref={(el) => {
+                  itemRefs.current[product.id] = el;
+                }}
+                className="w-full"
+              >
+                <CartCard product={product} isSidebarOpen={collapseSidebar} />
+              </li>
             ))
           ) : (
             <h1
@@ -121,6 +141,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
           )}
         </ul>
       </ScrollArea>
+
       <div className="min-h-max">
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">

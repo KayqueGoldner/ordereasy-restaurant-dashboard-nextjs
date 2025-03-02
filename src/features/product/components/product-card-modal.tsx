@@ -46,6 +46,10 @@ export const ProductCardModal = () => {
   const { product, categoryName } = productCard;
 
   const handleAddToCart = () => {
+    const existingItem = items.find((item) => item.id === product.id);
+
+    if (existingItem?.quantity === quantity) return;
+
     addItem({
       id: product.id,
       image: product.imageUrl,
@@ -126,6 +130,7 @@ export const ProductCardModal = () => {
           ) : (
             <>Add to cart</>
           )}
+          <span>(${(Number(product.price) * quantity).toFixed(2)})</span>
         </Button>
       </div>
     </ResponsiveModal>

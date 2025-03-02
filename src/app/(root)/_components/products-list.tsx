@@ -13,7 +13,6 @@ import { Separator } from "@/components/ui/separator";
 import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
-import { ProductCardModal } from "@/features/product/components/product-card-modal";
 import { ProductCard } from "@/features/product/components/product-card";
 import { PRODUCTS_LIST_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
@@ -66,7 +65,6 @@ export const ProductsListSuspense = ({
 
   return (
     <main className="-mt-2 flex h-full flex-1 shrink-0 flex-col overflow-hidden">
-      <ProductCardModal />
       <div
         className={cn(
           "relative flex h-12 flex-col gap-2 overflow-hidden rounded-xl bg-white p-2 transition-all duration-300",

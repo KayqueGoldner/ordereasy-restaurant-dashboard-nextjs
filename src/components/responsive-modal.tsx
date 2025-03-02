@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -13,6 +14,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ResponsiveModalProps {
   children: React.ReactNode;
@@ -50,7 +52,11 @@ export const ResponsiveModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={contentClassName}>
+      <DialogOverlay
+        className="pointer-events-auto absolute opacity-80"
+        onClick={() => onOpenChange(false)}
+      />
+      <DialogContent className={cn("absolute", contentClassName)}>
         <DialogHeader className={headerClassName}>
           <DialogTitle className={titleClassName}>{title}</DialogTitle>
         </DialogHeader>

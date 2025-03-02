@@ -1,6 +1,7 @@
 import { HydrateClient, trpc } from "@/trpc/server";
 import { CartSidebar } from "@/features/cart/components/cart-sidebar";
 import { PRODUCTS_LIST_LIMIT } from "@/constants";
+import { ProductCardModal } from "@/features/product/components/product-card-modal";
 
 import { FilterNav } from "./_components/filter-nav";
 import { Header } from "./_components/header";
@@ -24,10 +25,13 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <HydrateClient>
       <div className="flex size-full gap-2">
-        <div className="flex size-full flex-col overflow-hidden">
-          <Header />
-          <FilterNav />
-          <ProductsList categoryId={categoryId} query={query} />
+        <div className="relative flex size-full flex-col overflow-hidden">
+          <ProductCardModal />
+          <div className="flex size-full flex-col overflow-hidden p-2">
+            <Header />
+            <FilterNav />
+            <ProductsList categoryId={categoryId} query={query} />
+          </div>
         </div>
         <CartSidebar isMobile={false} />
       </div>

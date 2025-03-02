@@ -8,6 +8,7 @@ import { Hint } from "@/components/hint";
 import { cn } from "@/lib/utils";
 import { useCartData } from "@/hooks/use-cart-data";
 import { trpc } from "@/trpc/client";
+import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 
 interface CartCardProps {
   isSidebarOpen: boolean;
@@ -16,6 +17,8 @@ interface CartCardProps {
 
 export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   const { updateQuantity, removeItem, items } = useCartData();
+  const { product: productModal } = useProductCardModal();
+
   const removeItemCart = trpc.cart.removeItem.useMutation();
   const updateItemCart = trpc.cart.updateItem.useMutation();
 
@@ -44,15 +47,22 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   };
 
   return (
-    <li
+    <div
       className={cn(
-        "flex h-16 w-full shrink-0 items-start justify-between gap-3",
+        "relative flex h-16 w-full shrink-0 items-start justify-between gap-3 rounded-xl p-1 transition-all duration-200",
         isSidebarOpen && "h-12",
+        productModal?.product
+          ? productModal.product.id === product.id
+            ? "opacity-300 bg-gray-100"
+            : items.find((item) => item.id === productModal.product.id)
+              ? "pointer-events-none opacity-50"
+              : "opacity-100"
+          : "opacity-100",
       )}
     >
       <div
         className={cn(
-          "flex h-full w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-200",
+          "flex h-full w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-neutral-200 transition-all",
           isSidebarOpen && "size-full",
         )}
       >
@@ -72,12 +82,16 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
       >
         <div className="max-w-[18ch] flex-1 space-y-1 pt-1">
           <h1 className="truncate text-base">{product.name}</h1>
-          <h3 className="truncate text-sm font-medium text-muted-foreground">
+          <h3 className="truncate rounded-full px-1.5 font-semibold text-primary">
             ${product.price}
           </h3>
         </div>
         <div className="flex gap-x-1.5">
-          <div className="flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1">
+          <div
+            className={cn(
+              "flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1 transition-all",
+            )}
+          >
             <Button
               className="size-5 rounded-full p-0"
               onClick={() => handleQuantity(Math.max(1, product.quantity - 1))}
@@ -108,6 +122,6 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           </Hint>
         </div>
       </div>
-    </li>
+    </div>
   );
 };
