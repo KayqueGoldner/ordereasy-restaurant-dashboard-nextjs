@@ -2,7 +2,6 @@
 
 import { FaCartShopping } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { Session } from "next-auth";
 
@@ -22,6 +21,7 @@ import {
 
 import { CartCard } from "./cart-card";
 import { CartDiscountInput } from "./cart-discount-input";
+import { CartOrderButton } from "./cart-order-button";
 
 interface CartSidebarProps {
   className?: string;
@@ -36,6 +36,7 @@ export const CartSidebar = ({
 }: CartSidebarProps) => {
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const {
+    clearCart,
     addItems,
     items,
     totalDiscount,
@@ -61,6 +62,8 @@ export const CartSidebar = ({
   useEffect(() => {
     if (!data.items) return;
 
+    clearCart();
+
     const newItems = data.items.map((item) => {
       return {
         id: item.products.id,
@@ -68,12 +71,13 @@ export const CartSidebar = ({
         name: item.products.name as string,
         price: item.products.price,
         quantity: item.cart_items.quantity,
+        note: item.cart_items.note,
       };
     });
 
     addItems(newItems);
     updateDiscounts(data.cart?.discounts || []);
-  }, [addItems, data, updateDiscounts]);
+  }, [addItems, data, updateDiscounts, clearCart]);
 
   useEffect(() => {
     if (ProductModal && itemRefs.current[ProductModal.product.id]) {
@@ -126,7 +130,7 @@ export const CartSidebar = ({
         >
           <ul
             className={cn(
-              "flex h-max w-full flex-col gap-2 overflow-auto pr-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar]:w-2",
+              "flex h-max w-full flex-col gap-2 overflow-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar]:w-2",
             )}
           >
             {items.length > 0 ? (
@@ -202,21 +206,7 @@ export const CartSidebar = ({
             >
               <CartDiscountInput />
             </div>
-            <Button
-              className={cn(
-                "h-12 w-40 rounded-full",
-                collapseSidebar && "size-10 rounded-full p-0",
-              )}
-              asChild
-            >
-              <Link href="/">
-                {collapseSidebar ? (
-                  <FaCartShopping className="size-4" />
-                ) : (
-                  <>Place Order</>
-                )}
-              </Link>
-            </Button>
+            <CartOrderButton collapseSidebar={collapseSidebar} />
           </div>
         </div>
       </div>
@@ -232,7 +222,7 @@ export const CartSidebarMobile = ({ session }: CartSidebarProps) => {
           <FaCartShopping className="size-4 stroke-2 text-white" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-dvw max-w-full overflow-y-auto p-0">
+      <SheetContent className="w-dvw max-w-full overflow-y-auto p-0 sm:max-w-md">
         <SheetTitle hidden aria-label="cart" />
         <CartSidebar
           className="flex max-w-full"

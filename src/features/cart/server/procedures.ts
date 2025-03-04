@@ -81,11 +81,12 @@ export const cartRouter = createTRPCRouter({
         productId: z.string(),
         price: z.string(),
         quantity: z.number(),
+        note: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { productId, price, quantity } = input;
+      const { productId, price, quantity, note } = input;
 
       const [dbUser] = await db
         .select()
@@ -106,7 +107,7 @@ export const cartRouter = createTRPCRouter({
       if (existingItem) {
         const data = await db
           .update(cartItems)
-          .set({ quantity: existingItem.quantity + 1 })
+          .set({ note, quantity })
           .where(
             and(
               eq(cartItems.productId, productId),
@@ -125,6 +126,7 @@ export const cartRouter = createTRPCRouter({
           price,
           productId,
           quantity,
+          note,
         })
         .returning();
 

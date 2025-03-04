@@ -4,6 +4,7 @@ interface CartItem {
   name: string;
   price: string;
   quantity: number;
+  note?: string | null;
 }
 
 interface Discounts {

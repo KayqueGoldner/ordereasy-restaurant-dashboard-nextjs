@@ -2,6 +2,7 @@
 
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa6";
 import Image from "next/image";
+import { SlNote } from "react-icons/sl";
 
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/hint";
@@ -80,13 +81,23 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           isSidebarOpen && "hidden",
         )}
       >
-        <div className="max-w-[18ch] flex-1 space-y-1 pt-1">
+        <div className="max-w-[18ch] flex-1 shrink space-y-1 pt-1">
           <h1 className="truncate text-base">{product.name}</h1>
-          <h3 className="truncate rounded-full px-1.5 font-semibold text-primary">
-            ${product.price}
-          </h3>
+          <div className="flex items-center gap-1">
+            <h3 className="truncate rounded-full px-1.5 font-semibold leading-4 text-primary">
+              ${product.price}
+            </h3>
+            <Hint text="Edit note" asChild>
+              <Button
+                className="size-5 rounded-full p-0"
+                onClick={() => {}} // TODO: add note modal
+              >
+                <SlNote className="size-3" />
+              </Button>
+            </Hint>
+          </div>
         </div>
-        <div className="flex gap-x-1.5">
+        <div className="flex items-center gap-1">
           <div
             className={cn(
               "flex items-center gap-2 rounded-full bg-neutral-100 px-1.5 py-1 transition-all",
@@ -99,7 +110,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
             >
               <FaMinus className="size-3" />
             </Button>
-            <p className="min-w-5 text-center text-sm font-semibold">
+            <p className="min-w-4 text-center text-sm font-semibold">
               {product.quantity}
             </p>
             <Button
@@ -113,7 +124,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           <Hint text="Remove" side="top" className="px-2 py-1" asChild>
             <Button
               variant="outline"
-              className="size-7 h-auto rounded-full p-0 text-xs font-semibold"
+              className="size-6 shrink-0 rounded-full p-0 text-xs font-semibold"
               onClick={handleRemoveProduct}
               disabled={removeItemCart.isPending || updateItemCart.isPending}
             >

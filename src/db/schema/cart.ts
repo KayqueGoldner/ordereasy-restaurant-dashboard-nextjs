@@ -7,6 +7,7 @@ import {
   primaryKey,
   numeric,
   jsonb,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { products } from "@/db/schema/products";
 
@@ -37,6 +38,7 @@ export const cartItems = pgTable(
       .references(() => products.id, { onDelete: "cascade" }),
     price: numeric("price").notNull(),
     quantity: integer("quantity").default(1).notNull(),
+    note: varchar("note", { length: 255 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

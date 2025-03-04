@@ -17,6 +17,7 @@ import { useProductCardModal } from "../hooks/use-product-card-modal";
 
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
+  const [note, setNote] = useState("");
   const { product: productCard, closeModal } = useProductCardModal();
   const { addItem, items } = useCartData();
   const trpcUtils = trpc.useUtils();
@@ -39,6 +40,9 @@ export const ProductCardModal = () => {
     setQuantity(
       items.find((item) => item.id === productCard?.product?.id)?.quantity || 1,
     );
+    setNote(
+      items.find((item) => item.id === productCard?.product?.id)?.note || "",
+    );
   }, [productCard, items]);
 
   if (!productCard) return null;
@@ -48,7 +52,8 @@ export const ProductCardModal = () => {
   const handleAddToCart = () => {
     const existingItem = items.find((item) => item.id === product.id);
 
-    if (existingItem?.quantity === quantity) return;
+    if (existingItem?.quantity === quantity && existingItem?.note === note)
+      return;
 
     addItem({
       id: product.id,
@@ -56,12 +61,14 @@ export const ProductCardModal = () => {
       name: product.name as string,
       price: product.price,
       quantity,
+      note,
     });
 
     addToCart.mutate({
       productId: product.id,
       price: product.price,
       quantity,
+      note,
     });
   };
 
@@ -98,6 +105,8 @@ export const ProductCardModal = () => {
               <Textarea
                 placeholder="Add notes to order"
                 className="block h-20 resize-none rounded-xl border-0 bg-neutral-100"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
               />
               <div className="flex items-center justify-between gap-2 rounded-full bg-neutral-100 px-1.5 py-1">
                 <Button

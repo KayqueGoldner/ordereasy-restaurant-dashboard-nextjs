@@ -25,6 +25,8 @@ export const users = pgTable("user", {
   image: text("image"),
   cartId: text("cart_id").references(() => cart.id, { onDelete: "set null" }),
   role: userRole("role").default("CUSTOMER").notNull(),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
