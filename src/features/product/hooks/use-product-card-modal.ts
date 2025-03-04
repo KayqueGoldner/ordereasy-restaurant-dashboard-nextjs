@@ -1,15 +1,8 @@
 import { create } from "zustand";
 
-import { Product } from "@/db/schema/products";
-
-interface ProductItem {
-  product: Product;
-  categoryName: string;
-}
-
 interface ProductCardModalState {
-  product: ProductItem | null;
-  openModal: (id: ProductItem | null) => void;
+  product: Product | null;
+  openModal: (product: Product | null) => void;
   closeModal: () => void;
 }
 

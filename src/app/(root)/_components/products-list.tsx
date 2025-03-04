@@ -111,7 +111,7 @@ export const ProductsListSuspense = ({
             .flatMap((page) => page.items)
             .map((product) => (
               <li
-                key={product.products.id}
+                key={product.id}
                 className={cn(
                   "w-full",
                   state.isFetching && "pointer-events-none opacity-80",
@@ -121,8 +121,11 @@ export const ProductsListSuspense = ({
                 )}
               >
                 <ProductCard
-                  product={product.products}
-                  category={product.categories!}
+                  product={{
+                    ...product,
+                    categoryName: product.categoryName as string,
+                    quantity: 1,
+                  }}
                 />
               </li>
             ))}

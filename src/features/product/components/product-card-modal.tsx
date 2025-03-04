@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { FaMinus, FaPlus } from "react-icons/fa6";
+import { BsCartCheck } from "react-icons/bs";
 import { useEffect, useState } from "react";
 import { Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
@@ -18,14 +19,18 @@ import { useProductCardModal } from "../hooks/use-product-card-modal";
 export const ProductCardModal = () => {
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
+  const [success, setSuccess] = useState(false);
   const { product: productCard, closeModal } = useProductCardModal();
   const { addItem, items } = useCartData();
   const trpcUtils = trpc.useUtils();
 
   const addToCart = trpc.cart.addItem.useMutation({
     onSuccess: () => {
-      toast.success("Product added to cart!");
       trpcUtils.cart.getData.invalidate();
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+      }, 2000);
     },
     onError: (error) => {
       if (error.data?.code === "UNAUTHORIZED") {
@@ -36,37 +41,39 @@ export const ProductCardModal = () => {
     },
   });
 
+  const existingCartItem = items.find((item) => item.id === productCard?.id);
+
   useEffect(() => {
-    setQuantity(
-      items.find((item) => item.id === productCard?.product?.id)?.quantity || 1,
-    );
-    setNote(
-      items.find((item) => item.id === productCard?.product?.id)?.note || "",
-    );
-  }, [productCard, items]);
+    if (!productCard) return;
+
+    setQuantity(existingCartItem?.quantity || 1);
+    setNote(existingCartItem?.note || "");
+  }, [productCard, existingCartItem]);
 
   if (!productCard) return null;
 
-  const { product, categoryName } = productCard;
+  console.log(productCard);
 
   const handleAddToCart = () => {
-    const existingItem = items.find((item) => item.id === product.id);
+    const existingItem = items.find((item) => item.id === productCard.id);
 
     if (existingItem?.quantity === quantity && existingItem?.note === note)
       return;
 
     addItem({
-      id: product.id,
-      image: product.imageUrl,
-      name: product.name as string,
-      price: product.price,
+      id: productCard.id,
+      imageUrl: productCard.imageUrl,
+      categoryName: productCard.categoryName,
+      name: productCard.name as string,
+      description: productCard.description,
+      price: productCard.price,
       quantity,
       note,
     });
 
     addToCart.mutate({
-      productId: product.id,
-      price: product.price,
+      productId: productCard.id,
+      price: productCard.price,
       quantity,
       note,
     });
@@ -78,7 +85,7 @@ export const ProductCardModal = () => {
       titleClassName="text-center"
       headerClassName="pt-3"
       contentClassName="gap-1 overflow-hidden !rounded-2xl border-none p-0"
-      open={!!product}
+      open={!!productCard}
       onOpenChange={closeModal}
     >
       <div className="overflow-y-auto">
@@ -86,21 +93,23 @@ export const ProductCardModal = () => {
           <div className="mt-2">
             <div className="flex items-center justify-center rounded-xl bg-neutral-100">
               <Image
-                src={product.imageUrl}
-                alt={product.name || "Product image"}
+                src={productCard.imageUrl}
+                alt={productCard.name || "Product image"}
                 width={256}
                 height={256}
                 className="h-48 w-56 rounded-xl object-cover"
               />
             </div>
             <div className="mt-1.5 space-y-1.5">
-              <Badge className="h-5 px-1.5 py-0">{categoryName}</Badge>
-              <h1 className="text-xl font-medium">{product.name}</h1>
+              <Badge className="h-5 px-1.5 py-0">
+                {productCard.categoryName}
+              </Badge>
+              <h1 className="text-xl font-medium">{productCard.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {product.description}
+                {productCard.description}
               </p>
               <h3 className="text-xl font-bold text-primary">
-                ${product.price}
+                ${productCard.price}
               </h3>
               <Textarea
                 placeholder="Add notes to order"
@@ -129,17 +138,30 @@ export const ProductCardModal = () => {
         <Button
           className="h-14 w-full rounded-none"
           onClick={handleAddToCart}
-          disabled={addToCart.isPending}
+          disabled={addToCart.isPending || success}
         >
-          {addToCart.isPending ? (
+          {addToCart.isPending && (
             <>
-              <Loader2Icon className="size-4 animate-spin" />
-              Adding to cart...
+              <Loader2Icon className="size-5 animate-spin" />
+              updating...
             </>
-          ) : (
-            <>Add to cart</>
           )}
-          <span>(${(Number(product.price) * quantity).toFixed(2)})</span>
+
+          {!success && !addToCart.isPending && (
+            <>
+              {!existingCartItem ? "Add to Cart" : "Update Cart"}
+              <span>
+                (${(Number(productCard.price) * quantity).toFixed(2)})
+              </span>
+            </>
+          )}
+
+          {success && (
+            <>
+              <BsCartCheck className="size-5" />
+              Cart Updated
+            </>
+          )}
         </Button>
       </div>
     </ResponsiveModal>

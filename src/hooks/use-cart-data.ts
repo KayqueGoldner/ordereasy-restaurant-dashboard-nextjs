@@ -2,14 +2,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface UseCartDataState {
-  items: CartItem[];
+  items: Product[];
   discounts: Discounts[];
   totalDiscount: string;
   tax: string;
   subTotal: string;
   total: string;
-  addItem: (item: CartItem) => void;
-  addItems: (items: CartItem[]) => void;
+  addItem: (item: Product) => void;
+  addItems: (items: Product[]) => void;
   removeItem: (id: string | number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   clearCart: () => void;
@@ -110,7 +110,7 @@ export const useCartData = create<UseCartDataState>()(
 
 // Função auxiliar para recalcular subtotal, imposto e total
 export const calculateCartInfo = (
-  items: CartItem[],
+  items: Product[],
   discounts: { code: string; amount: number }[],
 ) => {
   const subTotal = items.reduce(

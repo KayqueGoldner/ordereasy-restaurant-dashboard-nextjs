@@ -13,12 +13,12 @@ import { useProductCardModal } from "@/features/product/hooks/use-product-card-m
 
 interface CartCardProps {
   isSidebarOpen: boolean;
-  product: CartItem;
+  product: Product;
 }
 
 export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   const { updateQuantity, removeItem, items } = useCartData();
-  const { product: productModal } = useProductCardModal();
+  const { product: productModal, openModal } = useProductCardModal();
 
   const removeItemCart = trpc.cart.removeItem.useMutation();
   const updateItemCart = trpc.cart.updateItem.useMutation();
@@ -52,10 +52,10 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
       className={cn(
         "relative flex h-16 w-full shrink-0 items-start justify-between gap-3 rounded-xl p-1 transition-all duration-200",
         isSidebarOpen && "h-12",
-        productModal?.product
-          ? productModal.product.id === product.id
+        productModal
+          ? productModal.id === product.id
             ? "opacity-300 bg-primary/10"
-            : items.find((item) => item.id === productModal.product.id)
+            : items.find((item) => item.id === productModal.id)
               ? "pointer-events-none opacity-50"
               : "opacity-100"
           : "opacity-100",
@@ -68,7 +68,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
         )}
       >
         <Image
-          src={product.image}
+          src={product.imageUrl}
           alt={product.name}
           width={256}
           height={256}
@@ -90,7 +90,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
             <Hint text="Edit note" asChild>
               <Button
                 className="size-5 rounded-full p-0"
-                onClick={() => {}} // TODO: add note modal
+                onClick={() => openModal(product)}
               >
                 <SlNote className="size-3" />
               </Button>

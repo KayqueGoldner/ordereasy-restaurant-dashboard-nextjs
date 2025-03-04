@@ -1,7 +1,9 @@
-interface CartItem {
+interface Product {
   id: string;
-  image: string;
+  imageUrl: string;
   name: string;
+  description: string;
+  categoryName: string;
   price: string;
   quantity: number;
   note?: string | null;

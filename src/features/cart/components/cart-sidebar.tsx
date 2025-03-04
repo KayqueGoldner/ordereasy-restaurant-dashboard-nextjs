@@ -60,28 +60,30 @@ export const CartSidebar = ({
   };
 
   useEffect(() => {
-    if (!data.items) return;
+    if (!data) return;
 
     clearCart();
 
-    const newItems = data.items.map((item) => {
+    const newItems = data.map((item) => {
       return {
-        id: item.products.id,
-        image: item.products.imageUrl,
-        name: item.products.name as string,
-        price: item.products.price,
-        quantity: item.cart_items.quantity,
-        note: item.cart_items.note,
+        id: item.productId as string,
+        imageUrl: item.imageUrl as string,
+        name: item.name as string,
+        description: item.description as string,
+        categoryName: item.categoryName as string,
+        price: item.price as string,
+        quantity: item.quantity as number,
+        note: item.note,
       };
     });
 
     addItems(newItems);
-    updateDiscounts(data.cart?.discounts || []);
+    updateDiscounts(data[0].discounts || []);
   }, [addItems, data, updateDiscounts, clearCart]);
 
   useEffect(() => {
-    if (ProductModal && itemRefs.current[ProductModal.product.id]) {
-      itemRefs.current[ProductModal.product.id]?.scrollIntoView({
+    if (ProductModal && itemRefs.current[ProductModal.id]) {
+      itemRefs.current[ProductModal.id]?.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });

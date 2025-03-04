@@ -30,7 +30,18 @@ export const productsRouter = createTRPCRouter({
       const { cursor, limit, categoryId, query } = input;
 
       const data = await db
-        .select()
+        .select({
+          id: products.id,
+          name: products.name,
+          imageUrl: products.imageUrl,
+          categoryName: categories.name,
+          description: products.description,
+          price: products.price,
+          isAvailable: products.isAvailable,
+          categoryId: products.categoryId,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+        })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
         .where(
@@ -48,8 +59,8 @@ export const productsRouter = createTRPCRouter({
       const lastItem = items[items.length - 1];
       const nextCursor = hasMore
         ? {
-            id: lastItem.products.id,
-            updatedAt: lastItem.products.updatedAt,
+            id: lastItem.id,
+            updatedAt: lastItem.updatedAt,
           }
         : null;
 

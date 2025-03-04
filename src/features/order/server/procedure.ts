@@ -7,7 +7,7 @@ import { users } from "@/db/schema/users";
 import { TRPCError } from "@trpc/server";
 import { order, orderItems, paymentProviderEnum } from "@/db/schema/order";
 import { products } from "@/db/schema/products";
-import { cart, cartItems } from "@/db/schema/cart";
+import { cart, Products } from "@/db/schema/cart";
 
 export const orderRouter = createTRPCRouter({
   getOne: protectedProcedure
@@ -58,19 +58,19 @@ export const orderRouter = createTRPCRouter({
         .from(cart)
         .where(eq(cart.id, dbUser.cartId));
 
-      const cartItemsData = await db
+      const ProductsData = await db
         .select()
-        .from(cartItems)
-        .where(eq(cartItems.cartId, dbUser.cartId));
+        .from(Products)
+        .where(eq(Products.cartId, dbUser.cartId));
 
-      if (cartItemsData.length === 0) {
+      if (ProductsData.length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Cart is empty",
         });
       }
 
-      const subTotal = cartItemsData.reduce(
+      const subTotal = ProductsData.reduce(
         (acc, item) => acc + parseFloat(item.price) * item.quantity,
         0,
       );
@@ -110,7 +110,7 @@ export const orderRouter = createTRPCRouter({
         })
         .returning();
 
-      const newOrderItems = cartItemsData.map((item) => ({
+      const newOrderItems = ProductsData.map((item) => ({
         orderId: newOrder.id,
         productId: item.productId,
         quantity: item.quantity,
