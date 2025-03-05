@@ -51,6 +51,7 @@ export const order = pgTable(
     cartId: text("cart_id")
       .notNull()
       .references(() => cart.id, { onDelete: "cascade" }),
+    address: text("address").notNull(),
     subTotal: numeric("sub_total", { precision: 10, scale: 2 }).notNull(),
     totalDiscount: numeric("total_discount", {
       precision: 10,
@@ -96,7 +97,6 @@ export const orderItems = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-
     orderId: text("order_id")
       .notNull()
       .references(() => order.id, { onDelete: "cascade" }),

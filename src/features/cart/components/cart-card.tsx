@@ -38,12 +38,9 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
   };
 
   const handleRemoveProduct = () => {
-    removeItemCart.mutate(
-      {
-        productId: product.id,
-      },
-      {},
-    );
+    removeItemCart.mutate({
+      productId: product.id,
+    });
     removeItem(product.id);
   };
 

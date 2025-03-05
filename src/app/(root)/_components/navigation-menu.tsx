@@ -16,10 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { Hint } from "@/components/hint";
-import { signOut } from "@/lib/auth";
+import Image from "next/image";
 
 import { NavigationMenuLink } from "./navigation-menu-link";
-import Image from "next/image";
+import { signOutAction } from "@/actions/auth-actions";
 
 const LINKS = {
   CUSTOMER: [
@@ -101,12 +101,7 @@ export const NavigationMenu = ({ user }: NavigationMenuProps) => {
                 </h3>
               </div>
               <Hint text="Log out" asChild>
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut();
-                  }}
-                >
+                <form action={() => signOutAction()}>
                   <Button
                     variant="destructive"
                     className="size-8 rounded-full p-0"

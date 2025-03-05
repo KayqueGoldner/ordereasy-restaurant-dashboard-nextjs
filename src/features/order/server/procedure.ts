@@ -7,7 +7,7 @@ import { users } from "@/db/schema/users";
 import { TRPCError } from "@trpc/server";
 import { order, orderItems, paymentProviderEnum } from "@/db/schema/order";
 import { products } from "@/db/schema/products";
-import { cart, Products } from "@/db/schema/cart";
+import { cart, cartItems } from "@/db/schema/cart";
 
 export const orderRouter = createTRPCRouter({
   getOne: protectedProcedure
@@ -46,10 +46,18 @@ export const orderRouter = createTRPCRouter({
         .from(users)
         .where(eq(users.id, userId as string));
 
+      // should never happen
       if (!dbUser.cartId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Cart not found",
+        });
+      }
+
+      if (!dbUser.address) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "ADDRESS_ERROR",
         });
       }
 
@@ -58,19 +66,19 @@ export const orderRouter = createTRPCRouter({
         .from(cart)
         .where(eq(cart.id, dbUser.cartId));
 
-      const ProductsData = await db
+      const cartItemsData = await db
         .select()
-        .from(Products)
-        .where(eq(Products.cartId, dbUser.cartId));
+        .from(cartItems)
+        .where(eq(cartItems.cartId, dbUser.cartId));
 
-      if (ProductsData.length === 0) {
+      if (cartItemsData.length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Cart is empty",
         });
       }
 
-      const subTotal = ProductsData.reduce(
+      const subTotal = cartItemsData.reduce(
         (acc, item) => acc + parseFloat(item.price) * item.quantity,
         0,
       );
@@ -100,6 +108,7 @@ export const orderRouter = createTRPCRouter({
           cartId: dbUser.cartId,
           orderNumber: nextOrderNumber,
           userId: dbUser.id,
+          address: dbUser.address as string,
           status: "PENDING",
           paymentStatus: "PENDING",
           totalPrice: totalPrice.toFixed(2),
@@ -110,7 +119,7 @@ export const orderRouter = createTRPCRouter({
         })
         .returning();
 
-      const newOrderItems = ProductsData.map((item) => ({
+      const newOrderItems = cartItemsData.map((item) => ({
         orderId: newOrder.id,
         productId: item.productId,
         quantity: item.quantity,

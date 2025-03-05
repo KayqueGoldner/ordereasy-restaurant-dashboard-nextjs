@@ -1,7 +1,9 @@
+"use client";
+
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-import { signIn } from "@/lib/auth";
+import { signInAction } from "@/actions/auth-actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,18 +11,17 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
   DialogOverlay,
 } from "@/components/ui/dialog";
+import { useSignInFormModal } from "@/features/user/hooks/use-sign-in-form-modal";
 
 export function SignInForm() {
+  const { isOpen, closeModal } = useSignInFormModal();
+
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={closeModal}>
       <DialogOverlay />
-      <DialogTrigger asChild>
-        <Button type="button">Sign in</Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-2xl">Log in to your account</DialogTitle>
@@ -29,23 +30,13 @@ export function SignInForm() {
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-center gap-x-2 py-6">
-          <form
-            action={async () => {
-              "use server";
-              await signIn("github");
-            }}
-          >
+          <form action={() => signInAction("github")}>
             <Button>
               <FaGithub className="size-4" />
               Log in with GitHub
             </Button>
           </form>
-          <form
-            action={async () => {
-              "use server";
-              await signIn("google");
-            }}
-          >
+          <form action={() => signInAction("google")}>
             <Button>
               <FcGoogle className="size-4" />
               Log in with Google

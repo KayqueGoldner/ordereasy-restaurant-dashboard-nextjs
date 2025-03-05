@@ -1,11 +1,14 @@
+"use client";
+
 import dynamic from "next/dynamic";
 import { Session } from "next-auth";
 
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
-import { SignInForm } from "@/components/sign-in-form";
-import { UserButton } from "@/components/user-button";
+import { UserButton } from "@/features/user/components/user-button";
 import { CartSidebarMobile } from "@/features/cart/components/cart-sidebar";
+import { Button } from "@/components/ui/button";
+import { useSignInFormModal } from "@/features/user/hooks/use-sign-in-form-modal";
 
 import { NavigationMenu } from "./navigation-menu";
 
@@ -20,7 +23,9 @@ interface HeaderProps {
   session: Session | null;
 }
 
-export const Header = async ({ session }: HeaderProps) => {
+export const Header = ({ session }: HeaderProps) => {
+  const { openModal } = useSignInFormModal();
+
   return (
     <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-2">
       <div className="flex items-center gap-3">
@@ -30,8 +35,14 @@ export const Header = async ({ session }: HeaderProps) => {
         <HeaderCalendar />
       </div>
       <div className="flex flex-1 justify-end gap-2">
-        {session?.user ? <UserButton session={session} /> : <SignInForm />}
-        <CartSidebarMobile isMobile session={session} />
+        {session?.user ? (
+          <UserButton session={session} />
+        ) : (
+          <Button type="button" onClick={openModal}>
+            Sign In
+          </Button>
+        )}
+        <CartSidebarMobile />
       </div>
     </header>
   );

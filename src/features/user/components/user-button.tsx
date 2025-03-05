@@ -1,9 +1,11 @@
+"use client";
+
 import { FaUser } from "react-icons/fa6";
 import { IoLogOutOutline, IoSettingsOutline } from "react-icons/io5";
 import { Session } from "next-auth";
 import Image from "next/image";
 
-import { signOut } from "@/lib/auth";
+import { signOutAction } from "@/actions/auth-actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,14 +15,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserSettingsModal } from "@/features/user/hooks/use-user-settings-modal";
 
 interface UserButtonProps {
   session: Session;
 }
 
 export const UserButton = ({ session }: UserButtonProps) => {
+  const { openModal } = useUserSettingsModal();
+
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button className="size-8 rounded-full p-0">
           {session.user.image ? (
@@ -41,17 +46,11 @@ export const UserButton = ({ session }: UserButtonProps) => {
           {session.user.name || session.user.email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openModal()}>
           <IoSettingsOutline className="size-4" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <form
-          action={async () => {
-            "use server";
-            await signOut();
-          }}
-        >
+        <form action={() => signOutAction()}>
           <DropdownMenuItem asChild>
             <button className="w-full hover:!bg-destructive hover:!text-white">
               <IoLogOutOutline className="size-4" />

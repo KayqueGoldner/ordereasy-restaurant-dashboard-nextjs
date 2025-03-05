@@ -52,8 +52,6 @@ export const ProductCardModal = () => {
 
   if (!productCard) return null;
 
-  console.log(productCard);
-
   const handleAddToCart = () => {
     const existingItem = items.find((item) => item.id === productCard.id);
 

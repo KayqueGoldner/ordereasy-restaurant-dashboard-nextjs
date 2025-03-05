@@ -2,7 +2,7 @@ import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db/drizzle";
-import { cart, Products } from "@/db/schema/cart";
+import { cart, cartItems } from "@/db/schema/cart";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -17,6 +17,10 @@ export const cartRouter = createTRPCRouter({
   getData: baseProcedure.query(async ({ ctx }) => {
     const user = ctx.authUser;
 
+    if (!user) {
+      return [];
+    }
+
     const [dbUser] = await db
       .select()
       .from(users)
@@ -24,24 +28,24 @@ export const cartRouter = createTRPCRouter({
 
     const cartData = await db
       .select({
-        id: cart.id,
+        id: cartItems.id,
         discounts: cart.discounts,
-        productId: Products.productId,
+        productId: cartItems.productId,
         name: products.name,
         description: products.description,
         categoryId: products.categoryId,
         categoryName: categories.name,
         imageUrl: products.imageUrl,
-        price: Products.price,
-        quantity: Products.quantity,
-        note: Products.note,
+        price: cartItems.price,
+        quantity: cartItems.quantity,
+        note: cartItems.note,
       })
-      .from(cart)
-      .where(eq(cart.id, dbUser.cartId as string))
-      .leftJoin(Products, eq(cart.id, Products.cartId))
-      .leftJoin(products, eq(Products.productId, products.id))
+      .from(cartItems)
+      .where(eq(cartItems.cartId, dbUser.cartId as string))
+      .leftJoin(cart, eq(cartItems.cartId, cart.id))
+      .leftJoin(products, eq(cartItems.productId, products.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
-      .orderBy(desc(Products.createdAt));
+      .orderBy(desc(cartItems.createdAt));
 
     return cartData;
   }),
@@ -96,23 +100,23 @@ export const cartRouter = createTRPCRouter({
 
       const [existingItem] = await db
         .select()
-        .from(Products)
+        .from(cartItems)
         .where(
           and(
-            eq(Products.productId, productId),
-            eq(Products.cartId, dbUser.cartId as string),
+            eq(cartItems.productId, productId),
+            eq(cartItems.cartId, dbUser.cartId as string),
           ),
         )
         .limit(1);
 
       if (existingItem) {
         const data = await db
-          .update(Products)
+          .update(cartItems)
           .set({ note, quantity })
           .where(
             and(
-              eq(Products.productId, productId),
-              eq(Products.cartId, dbUser.cartId as string),
+              eq(cartItems.productId, productId),
+              eq(cartItems.cartId, dbUser.cartId as string),
             ),
           )
           .returning();
@@ -121,7 +125,7 @@ export const cartRouter = createTRPCRouter({
       }
 
       const data = await db
-        .insert(Products)
+        .insert(cartItems)
         .values({
           cartId: dbUser.cartId as string,
           price,
@@ -152,23 +156,23 @@ export const cartRouter = createTRPCRouter({
 
       const [existingItem] = await db
         .select()
-        .from(Products)
+        .from(cartItems)
         .where(
           and(
-            eq(Products.productId, productId),
-            eq(Products.cartId, dbUser.cartId as string),
+            eq(cartItems.productId, productId),
+            eq(cartItems.cartId, dbUser.cartId as string),
           ),
         )
         .limit(1);
 
       if (existingItem) {
         const data = await db
-          .update(Products)
+          .update(cartItems)
           .set({ quantity })
           .where(
             and(
-              eq(Products.productId, productId),
-              eq(Products.cartId, dbUser.cartId as string),
+              eq(cartItems.productId, productId),
+              eq(cartItems.cartId, dbUser.cartId as string),
             ),
           )
           .returning();
@@ -199,22 +203,22 @@ export const cartRouter = createTRPCRouter({
 
       const [existingItem] = await db
         .select()
-        .from(Products)
+        .from(cartItems)
         .where(
           and(
-            eq(Products.productId, productId),
-            eq(Products.cartId, dbUser.cartId as string),
+            eq(cartItems.productId, productId),
+            eq(cartItems.cartId, dbUser.cartId as string),
           ),
         )
         .limit(1);
 
       if (existingItem) {
         const data = await db
-          .delete(Products)
+          .delete(cartItems)
           .where(
             and(
-              eq(Products.productId, productId),
-              eq(Products.cartId, dbUser.cartId as string),
+              eq(cartItems.productId, productId),
+              eq(cartItems.cartId, dbUser.cartId as string),
             ),
           )
           .returning();

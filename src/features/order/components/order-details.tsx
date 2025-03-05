@@ -58,10 +58,7 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
               <h1 className="text-sm font-semibold uppercase text-muted-foreground">
                 Client Address
               </h1>
-              <h1 className="font-medium">
-                {/* TODO: add address to the users table */}
-                1600 Pennsylvania Avenue NW, Washington
-              </h1>
+              <h1 className="font-medium">{user?.address}</h1>
             </div>
             <Separator />
             <ul className="flex flex-col gap-y-3">

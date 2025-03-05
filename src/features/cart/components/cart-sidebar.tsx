@@ -3,7 +3,6 @@
 import { FaCartShopping } from "react-icons/fa6";
 import { CiMenuFries } from "react-icons/ci";
 import { useEffect, useRef } from "react";
-import { Session } from "next-auth";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCartSidebar } from "@/hooks/use-cart-sidebar";
 import { useCartData } from "@/hooks/use-cart-data";
 import { trpc } from "@/trpc/client";
+import { useUserSettingsModal } from "@/features/user/hooks/use-user-settings-modal";
 import { useProductCardModal } from "@/features/product/hooks/use-product-card-modal";
 import {
   Sheet,
@@ -26,14 +26,9 @@ import { CartOrderButton } from "./cart-order-button";
 interface CartSidebarProps {
   className?: string;
   isMobile: boolean;
-  session: Session | null;
 }
 
-export const CartSidebar = ({
-  className,
-  isMobile,
-  session,
-}: CartSidebarProps) => {
+export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
   const { isOpen, onClose, onOpen } = useCartSidebar();
   const {
     clearCart,
@@ -46,10 +41,12 @@ export const CartSidebar = ({
     updateDiscounts,
   } = useCartData();
   const { product: ProductModal } = useProductCardModal();
+  const { openModal } = useUserSettingsModal();
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const [data] = trpc.cart.getData.useSuspenseQuery();
+  const [userData] = trpc.user.getData.useSuspenseQuery();
 
   const handleSidebar = () => {
     if (isOpen) {
@@ -60,7 +57,7 @@ export const CartSidebar = ({
   };
 
   useEffect(() => {
-    if (!data) return;
+    if (data.length === 0) return;
 
     clearCart();
 
@@ -78,7 +75,7 @@ export const CartSidebar = ({
     });
 
     addItems(newItems);
-    updateDiscounts(data[0].discounts || []);
+    updateDiscounts(data[0]?.discounts || []);
   }, [addItems, data, updateDiscounts, clearCart]);
 
   useEffect(() => {
@@ -117,7 +114,7 @@ export const CartSidebar = ({
             <FaCartShopping className="size-4 text-primary" />
           </div>
           <h1 className={cn("text-lg", collapseSidebar && "hidden")}>
-            {session?.user.name || "Customer's name"}
+            {userData?.name || "Customer's name"}
           </h1>
           <Button
             className="hidden size-7 rounded-full p-0 lg:flex"
@@ -126,9 +123,32 @@ export const CartSidebar = ({
             <CiMenuFries className="size-4 stroke-2 text-white" />
           </Button>
         </div>
+
+        {userData && (
+          <div className={cn("py-1", collapseSidebar && "hidden")}>
+            {userData.address ? (
+              <Button
+                variant="ghost"
+                className="w-full text-sm text-muted-foreground"
+                onClick={() => openModal("address")}
+              >
+                {userData.address}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                className="w-full text-sm text-muted-foreground"
+                onClick={() => openModal("address")}
+              >
+                Please add your address
+              </Button>
+            )}
+          </div>
+        )}
+
         <ScrollArea
           ref={scrollAreaRef}
-          className={cn("flex-1 py-5", collapseSidebar && "w-16 px-1.5")}
+          className={cn("flex-1 pb-5 pt-1", collapseSidebar && "w-16 px-1.5")}
         >
           <ul
             className={cn(
@@ -216,7 +236,7 @@ export const CartSidebar = ({
   );
 };
 
-export const CartSidebarMobile = ({ session }: CartSidebarProps) => {
+export const CartSidebarMobile = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -226,11 +246,7 @@ export const CartSidebarMobile = ({ session }: CartSidebarProps) => {
       </SheetTrigger>
       <SheetContent className="w-dvw max-w-full overflow-y-auto p-0 sm:max-w-md">
         <SheetTitle hidden aria-label="cart" />
-        <CartSidebar
-          className="flex max-w-full"
-          isMobile={true}
-          session={session}
-        />
+        <CartSidebar className="flex max-w-full" isMobile={true} />
       </SheetContent>
     </Sheet>
   );

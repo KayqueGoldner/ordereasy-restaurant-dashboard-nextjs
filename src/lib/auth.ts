@@ -53,6 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         user: {
           ...session.user,
           role: dbUser.role,
+          address: dbUser.address,
         },
       };
     },
