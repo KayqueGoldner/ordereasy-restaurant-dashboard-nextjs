@@ -109,30 +109,6 @@ export const orderRouter = createTRPCRouter({
         .where(eq(cartDiscount.cartId, dbUser.cartId))
         .leftJoin(discount, eq(discount.id, cartDiscount.discountId));
 
-      const session = await stripe.checkout.sessions.create({
-        customer: dbUser.stripeCustomerId as string,
-        line_items: cartItemsData.map((item) => ({
-          price_data: {
-            currency: "USD",
-            product_data: {
-              name: item.productName!,
-              description: item.productDescription!,
-              images: [item.productImageUrl!],
-            },
-            unit_amount: parseFloat(item.price) * 100,
-          },
-          quantity: item.quantity,
-          tax_rates: [STRIPE_TAX_RATE],
-        })),
-        currency: "USD",
-        mode: "payment",
-        discounts: cartDiscountData.map((discount) => ({
-          promotion_code: discount.stripePromoCodeId || "",
-        })),
-        success_url: `http://localhost:3000/`, // TODO: add success url
-        cancel_url: "http://localhost:3000/", // TODO: add cancel url
-      });
-
       if (cartItemsData.length === 0) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -172,7 +148,6 @@ export const orderRouter = createTRPCRouter({
           address: dbUser.address as string,
           status: "PENDING",
           paymentStatus: "PENDING",
-          sessionUrl: session.url,
           totalPrice: totalPrice.toFixed(2),
           subTotal: subTotal.toFixed(2),
           tax: tax.toFixed(2),
@@ -180,6 +155,40 @@ export const orderRouter = createTRPCRouter({
           paymentProvider,
         })
         .returning();
+
+      const session = await stripe.checkout.sessions.create({
+        customer: dbUser.stripeCustomerId as string,
+        line_items: cartItemsData.map((item) => ({
+          price_data: {
+            currency: "USD",
+            product_data: {
+              name: item.productName!,
+              description: item.productDescription!,
+              images: [item.productImageUrl!],
+            },
+            unit_amount: parseFloat(item.price) * 100,
+          },
+          quantity: item.quantity,
+          tax_rates: [STRIPE_TAX_RATE],
+        })),
+        currency: "USD",
+        mode: "payment",
+        discounts: cartDiscountData.map((discount) => ({
+          promotion_code: discount.stripePromoCodeId || "",
+        })),
+        metadata: {
+          orderId: newOrder.id,
+        },
+        success_url: `http://localhost:3000/`, // TODO: add success url
+        cancel_url: "http://localhost:3000/", // TODO: add cancel url
+      });
+
+      await db
+        .update(order)
+        .set({
+          sessionUrl: session.url,
+        })
+        .where(eq(order.id, newOrder.id));
 
       const newOrderItems = cartItemsData.map((item) => ({
         orderId: newOrder.id,
