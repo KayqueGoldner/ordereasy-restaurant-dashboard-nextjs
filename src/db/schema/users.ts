@@ -24,6 +24,7 @@ export const users = pgTable("user", {
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
   cartId: text("cart_id").references(() => cart.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id"),
   role: userRole("role").default("CUSTOMER").notNull(),
   address: text("address"),
   isDeleted: boolean("is_deleted").default(false).notNull(),

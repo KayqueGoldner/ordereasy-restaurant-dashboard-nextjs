@@ -3,7 +3,6 @@ import { persist } from "zustand/middleware";
 
 interface UseCartDataState {
   items: Product[];
-  discounts: Discounts[];
   totalDiscount: string;
   tax: string;
   subTotal: string;
@@ -13,21 +12,18 @@ interface UseCartDataState {
   removeItem: (id: string | number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   clearCart: () => void;
-  updateDiscounts: (discounts: Discounts[]) => void;
-  applyDiscountCode: (code: string, discountAmount: number) => void;
+  updateTotalDiscount: (discounts: string[]) => void;
 }
 
 export const useCartData = create<UseCartDataState>()(
   persist(
     (set) => ({
       items: [],
-      discounts: [],
       totalDiscount: "0",
       subTotal: "0",
       tax: "0",
       total: "0",
 
-      // Adiciona um item ao carrinho
       addItem: (item) => {
         set((state) => {
           const existingItem = state.items.find((i) => i.id === item.id);
@@ -37,7 +33,7 @@ export const useCartData = create<UseCartDataState>()(
               )
             : [...state.items, item];
 
-          return calculateCartInfo(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.totalDiscount);
         });
       },
 
@@ -53,7 +49,7 @@ export const useCartData = create<UseCartDataState>()(
               updatedItems.push(item);
             }
           });
-          return calculateCartInfo(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.totalDiscount);
         });
       },
 
@@ -61,7 +57,7 @@ export const useCartData = create<UseCartDataState>()(
       removeItem: (id) => {
         set((state) => {
           const updatedItems = state.items.filter((item) => item.id !== id);
-          return calculateCartInfo(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.totalDiscount);
         });
       },
 
@@ -71,7 +67,7 @@ export const useCartData = create<UseCartDataState>()(
           const updatedItems = state.items.map((item) =>
             item.id === id ? { ...item, quantity } : item,
           );
-          return calculateCartInfo(updatedItems, state.discounts);
+          return calculateCartInfo(updatedItems, state.totalDiscount);
         });
       },
 
@@ -84,22 +80,15 @@ export const useCartData = create<UseCartDataState>()(
           total: "0",
         }),
 
-      updateDiscounts: (newDiscounts: Discounts[]) => {
-        set((state) => calculateCartInfo(state.items, newDiscounts));
-      },
+      updateTotalDiscount: (discounts: string[]) => {
+        const totalDiscount = discounts.reduce((acc, discount) => {
+          const discountValue = parseFloat(discount) || 0;
+          return acc + discountValue;
+        }, 0);
 
-      // Aplica um código de desconto, garantindo que ele não seja reutilizado
-      applyDiscountCode: (code, discountAmount) => {
-        set((state) => {
-          if (state.discounts.some((d) => d.code === code)) {
-            return state; // Código já utilizado, nenhuma alteração feita
-          }
-          const updatedDiscounts = [
-            ...state.discounts,
-            { code, amount: discountAmount },
-          ];
-          return calculateCartInfo(state.items, updatedDiscounts);
-        });
+        set((state) =>
+          calculateCartInfo(state.items, totalDiscount.toString()),
+        );
       },
     }),
     {
@@ -109,28 +98,19 @@ export const useCartData = create<UseCartDataState>()(
 );
 
 // Função auxiliar para recalcular subtotal, imposto e total
-export const calculateCartInfo = (
-  items: Product[],
-  discounts: { code: string; amount: number }[],
-) => {
+export const calculateCartInfo = (items: Product[], totalDiscount: string) => {
   const subTotal = items.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
     0,
   );
-  const tax = subTotal * 0.15; // Taxa de 15%
-  const totalDiscount = discounts.reduce(
-    (sum, discount) => sum + discount.amount,
-    0,
-  );
-  let total = subTotal - totalDiscount + tax;
+  const tax = subTotal * 0.15; // 15% Tax
+  let total = subTotal - Number(totalDiscount) + tax;
 
-  // Garantindo que o total não seja negativo
   total = Math.max(total, 0);
 
   return {
     items,
-    discounts,
-    totalDiscount: totalDiscount.toFixed(2).toString(),
+    totalDiscount: Number(totalDiscount).toFixed(2).toString(),
     subTotal: subTotal.toFixed(2),
     tax: tax.toFixed(2),
     total: total.toFixed(2),

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { trpc } from "@/trpc/server";
+import { ReportClient } from "@/features/report/components/report-client";
 
 const AdminReportPage = async () => {
   const session = await auth();
@@ -9,7 +11,9 @@ const AdminReportPage = async () => {
     return redirect("/");
   }
 
-  return <div>AdminReportPage</div>;
+  void trpc.report.getDiscounts.prefetch();
+
+  return <ReportClient />;
 };
 
 export default AdminReportPage;

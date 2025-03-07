@@ -38,7 +38,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
     subTotal,
     tax,
     total,
-    updateDiscounts,
+    updateTotalDiscount,
   } = useCartData();
   const { product: ProductModal } = useProductCardModal();
   const { openModal } = useUserSettingsModal();
@@ -57,26 +57,33 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
   };
 
   useEffect(() => {
-    if (data.length === 0) return;
+    if (!data) return;
 
     clearCart();
 
-    const newItems = data.map((item) => {
-      return {
-        id: item.productId as string,
-        imageUrl: item.imageUrl as string,
-        name: item.name as string,
-        description: item.description as string,
-        categoryName: item.categoryName as string,
-        price: item.price as string,
-        quantity: item.quantity as number,
-        note: item.note,
-      };
-    });
+    if (data.cartData) {
+      const newItems = data.cartData.map((item) => {
+        return {
+          id: item.productId as string,
+          imageUrl: item.imageUrl as string,
+          name: item.name as string,
+          description: item.description as string,
+          categoryName: item.categoryName as string,
+          price: item.price as string,
+          quantity: item.quantity as number,
+          note: item.note,
+        };
+      });
+      addItems(newItems);
+    }
 
-    addItems(newItems);
-    updateDiscounts(data[0]?.discounts || []);
-  }, [addItems, data, updateDiscounts, clearCart]);
+    if (data.discounts) {
+      const discounts = data.discounts.map(
+        (discount) => discount.amount || "0",
+      );
+      updateTotalDiscount(discounts);
+    }
+  }, [addItems, data, updateTotalDiscount, clearCart]);
 
   useEffect(() => {
     if (ProductModal && itemRefs.current[ProductModal.id]) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FaCcStripe } from "react-icons/fa";
+import Link from "next/link";
 
 import { trpc } from "@/trpc/client";
 import {
@@ -115,9 +116,11 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
               </div>
             </div>
           </div>
-          <Button className="w-full">
-            <FaCcStripe className="size-5" />
-            Pay with Stripe
+          <Button className="w-full" asChild>
+            <Link href={order.sessionUrl as string} target="_blank">
+              <FaCcStripe className="size-5" />
+              Pay with Stripe
+            </Link>
           </Button>
         </CardContent>
       </Card>

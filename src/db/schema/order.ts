@@ -67,6 +67,7 @@ export const order = pgTable(
     paymentStatus: paymentStatusEnum("payment_status")
       .notNull()
       .default("PENDING"),
+    sessionUrl: text("session_url"),
     paymentDate: timestamp("payment_date"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),

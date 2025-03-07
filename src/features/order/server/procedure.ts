@@ -7,7 +7,10 @@ import { users } from "@/db/schema/users";
 import { TRPCError } from "@trpc/server";
 import { order, orderItems, paymentProviderEnum } from "@/db/schema/order";
 import { products } from "@/db/schema/products";
-import { cart, cartItems } from "@/db/schema/cart";
+import { cartDiscount, cartItems } from "@/db/schema/cart";
+import { stripe } from "@/lib/stripe";
+import { STRIPE_TAX_RATE } from "@/constants";
+import { discount } from "@/db/schema/discount";
 
 export const orderRouter = createTRPCRouter({
   getOne: protectedProcedure
@@ -61,15 +64,74 @@ export const orderRouter = createTRPCRouter({
         });
       }
 
-      const [cartData] = await db
-        .select()
-        .from(cart)
-        .where(eq(cart.id, dbUser.cartId));
+      if (!dbUser.stripeCustomerId) {
+        // create stripe customer
+        const customer = await stripe.customers.create({
+          email: dbUser.email!,
+          name: dbUser.name!,
+          address: {
+            line1: dbUser.address,
+          },
+        });
+
+        // update user with stripe customer id
+        await db
+          .update(users)
+          .set({
+            stripeCustomerId: customer.id,
+          })
+          .where(eq(users.id, userId as string));
+      }
 
       const cartItemsData = await db
-        .select()
+        .select({
+          id: cartItems.id,
+          productId: cartItems.productId,
+          productName: products.name,
+          productImageUrl: products.imageUrl,
+          productDescription: products.description,
+          productIsAvailable: products.isAvailable,
+          cartId: cartItems.cartId,
+          price: cartItems.price,
+          quantity: cartItems.quantity,
+          note: cartItems.note,
+        })
         .from(cartItems)
-        .where(eq(cartItems.cartId, dbUser.cartId));
+        .where(eq(cartItems.cartId, dbUser.cartId))
+        .leftJoin(products, eq(products.id, cartItems.productId));
+
+      const cartDiscountData = await db
+        .select({
+          amount: discount.amount,
+          stripePromoCodeId: discount.stripePromoCodeId,
+        })
+        .from(cartDiscount)
+        .where(eq(cartDiscount.cartId, dbUser.cartId))
+        .leftJoin(discount, eq(discount.id, cartDiscount.discountId));
+
+      const session = await stripe.checkout.sessions.create({
+        customer: dbUser.stripeCustomerId as string,
+        line_items: cartItemsData.map((item) => ({
+          price_data: {
+            currency: "USD",
+            product_data: {
+              name: item.productName!,
+              description: item.productDescription!,
+              images: [item.productImageUrl!],
+            },
+            unit_amount: parseFloat(item.price) * 100,
+          },
+          quantity: item.quantity,
+          tax_rates: [STRIPE_TAX_RATE],
+        })),
+        currency: "USD",
+        mode: "payment",
+        discounts: cartDiscountData.map((discount) => ({
+          promotion_code: discount.stripePromoCodeId || "",
+        })),
+        success_url: `http://localhost:3000/`, // TODO: add success url
+        cancel_url: "http://localhost:3000/", // TODO: add cancel url
+      });
 
       if (cartItemsData.length === 0) {
         throw new TRPCError({
@@ -83,9 +145,8 @@ export const orderRouter = createTRPCRouter({
         0,
       );
 
-      const cartDiscounts = cartData.discounts || [];
-      const totalDiscount = cartDiscounts.reduce(
-        (acc, discount) => acc + discount.amount,
+      const totalDiscount = cartDiscountData?.reduce(
+        (acc, discount) => acc + Number(discount.amount),
         0,
       );
 
@@ -111,6 +172,7 @@ export const orderRouter = createTRPCRouter({
           address: dbUser.address as string,
           status: "PENDING",
           paymentStatus: "PENDING",
+          sessionUrl: session.url,
           totalPrice: totalPrice.toFixed(2),
           subTotal: subTotal.toFixed(2),
           tax: tax.toFixed(2),

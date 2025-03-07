@@ -2,7 +2,7 @@ import { z } from "zod";
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db/drizzle";
-import { cart, cartItems } from "@/db/schema/cart";
+import { cart, cartDiscount, cartItems } from "@/db/schema/cart";
 import {
   baseProcedure,
   createTRPCRouter,
@@ -12,13 +12,14 @@ import { users } from "@/db/schema/users";
 import { TRPCError } from "@trpc/server";
 import { products } from "@/db/schema/products";
 import { categories } from "@/db/schema/categories";
+import { discount } from "@/db/schema/discount";
 
 export const cartRouter = createTRPCRouter({
   getData: baseProcedure.query(async ({ ctx }) => {
     const user = ctx.authUser;
 
     if (!user) {
-      return [];
+      return {};
     }
 
     const [dbUser] = await db
@@ -29,7 +30,6 @@ export const cartRouter = createTRPCRouter({
     const cartData = await db
       .select({
         id: cartItems.id,
-        discounts: cart.discounts,
         productId: cartItems.productId,
         name: products.name,
         description: products.description,
@@ -47,34 +47,72 @@ export const cartRouter = createTRPCRouter({
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .orderBy(desc(cartItems.createdAt));
 
-    return cartData;
+    const discounts = await db
+      .select({
+        id: cartDiscount.id,
+        discountId: cartDiscount.discountId,
+        amount: discount.amount,
+        expires: discount.expires,
+      })
+      .from(cartDiscount)
+      .where(eq(cartDiscount.cartId, dbUser.cartId as string))
+      .leftJoin(discount, eq(discount.id, cartDiscount.discountId));
+
+    return {
+      cartData,
+      discounts,
+    };
   }),
 
   updateData: protectedProcedure
     .input(
       z.object({
-        discounts: z
-          .object({
-            code: z.string(),
-            amount: z.number(),
-          })
-          .array()
-          .optional(),
+        discountCode: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id: userId } = ctx.user;
-      const { discounts } = input;
+      const { discountCode } = input;
 
       const [dbUser] = await db
         .select()
         .from(users)
         .where(eq(users.id, userId as string));
 
+      const [discountData] = await db
+        .select()
+        .from(discount)
+        .where(eq(discount.code, discountCode))
+        .limit(1);
+
+      if (!discountData) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Discount code invalid",
+        });
+      }
+
+      const [existingCartDiscount] = await db
+        .select()
+        .from(cartDiscount)
+        .where(eq(cartDiscount.discountId, discountData.id))
+        .limit(1);
+
+      console.log(existingCartDiscount);
+
+      if (existingCartDiscount) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Discount code already applied",
+        });
+      }
+
       const data = await db
-        .update(cart)
-        .set({ discounts })
-        .where(eq(cart.id, dbUser.cartId as string))
+        .insert(cartDiscount)
+        .values({
+          cartId: dbUser.cartId as string,
+          discountId: discountData.id,
+        })
         .returning();
 
       return { data };
