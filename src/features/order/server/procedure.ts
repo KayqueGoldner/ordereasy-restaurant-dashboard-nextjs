@@ -156,6 +156,9 @@ export const orderRouter = createTRPCRouter({
         })
         .returning();
 
+      const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${newOrder.id}`;
+      const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${newOrder.id}`;
+
       const session = await stripe.checkout.sessions.create({
         customer: dbUser.stripeCustomerId as string,
         line_items: cartItemsData.map((item) => ({
@@ -179,8 +182,8 @@ export const orderRouter = createTRPCRouter({
         metadata: {
           orderId: newOrder.id,
         },
-        success_url: `http://localhost:3000/`, // TODO: add success url
-        cancel_url: "http://localhost:3000/", // TODO: add cancel url
+        success_url: successUrl,
+        cancel_url: cancelUrl,
       });
 
       await db

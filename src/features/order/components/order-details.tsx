@@ -1,7 +1,8 @@
 "use client";
 
-import { FaCcStripe } from "react-icons/fa";
 import Link from "next/link";
+import { FaCcStripe } from "react-icons/fa";
+import { FaCartShopping } from "react-icons/fa6";
 
 import { trpc } from "@/trpc/client";
 import {
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 interface OrderDetailsProps {
   orderId: string;
@@ -38,8 +40,18 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
     <div className="flex min-h-screen w-full items-center justify-center py-10">
       <Card className="max-w-4xl p-2 py-0">
         <CardHeader className="pb-0">
-          <div className="mb-5">
+          <div className="mb-5 flex items-center justify-between gap-2">
             <Logo className="text-xl" />
+            <div className="flex flex-col items-end gap-1">
+              <h1 className="text-sm font-medium">Payment Status</h1>
+              <Badge
+                variant={
+                  order.paymentStatus === "FAILED" ? "destructive" : "default"
+                }
+              >
+                {order.paymentStatus}
+              </Badge>
+            </div>
           </div>
           <CardTitle className="text-lg">Order details</CardTitle>
           <CardDescription className="font-medium">
@@ -116,12 +128,21 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
               </div>
             </div>
           </div>
-          <Button className="w-full" asChild>
-            <Link href={order.sessionUrl as string} target="_blank">
-              <FaCcStripe className="size-5" />
-              Pay with Stripe
-            </Link>
-          </Button>
+          {order.paymentStatus !== "SUCCEEDED" ? (
+            <Button className="w-full" asChild>
+              <Link href={order.sessionUrl as string} target="_blank">
+                <FaCcStripe className="size-5" />
+                Pay with Stripe
+              </Link>
+            </Button>
+          ) : (
+            <Button className="w-full" asChild>
+              <Link href="/cart">
+                <FaCartShopping />
+                Go to cart
+              </Link>
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
