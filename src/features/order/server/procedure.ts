@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, getTableColumns } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db/drizzle";
@@ -7,7 +7,7 @@ import { users } from "@/db/schema/users";
 import { TRPCError } from "@trpc/server";
 import { order, orderItems, paymentProviderEnum } from "@/db/schema/order";
 import { products } from "@/db/schema/products";
-import { cartDiscount, cartItems } from "@/db/schema/cart";
+import { cart, cartDiscount, cartItems } from "@/db/schema/cart";
 import { stripe } from "@/lib/stripe";
 import { STRIPE_TAX_RATE } from "@/constants";
 import { discount } from "@/db/schema/discount";
@@ -49,7 +49,6 @@ export const orderRouter = createTRPCRouter({
         .from(users)
         .where(eq(users.id, userId as string));
 
-      // should never happen
       if (!dbUser.cartId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -65,7 +64,6 @@ export const orderRouter = createTRPCRouter({
       }
 
       if (!dbUser.stripeCustomerId) {
-        // create stripe customer
         const customer = await stripe.customers.create({
           email: dbUser.email!,
           name: dbUser.name!,
@@ -74,7 +72,6 @@ export const orderRouter = createTRPCRouter({
           },
         });
 
-        // update user with stripe customer id
         await db
           .update(users)
           .set({
@@ -83,30 +80,43 @@ export const orderRouter = createTRPCRouter({
           .where(eq(users.id, userId as string));
       }
 
-      const cartItemsData = await db
+      const allCartData = await db
         .select({
-          id: cartItems.id,
-          productId: cartItems.productId,
-          productName: products.name,
-          productImageUrl: products.imageUrl,
-          productDescription: products.description,
-          productIsAvailable: products.isAvailable,
-          cartId: cartItems.cartId,
-          price: cartItems.price,
-          quantity: cartItems.quantity,
-          note: cartItems.note,
+          ...getTableColumns(cart),
+          cartItems: {
+            id: cartItems.id,
+            productId: cartItems.productId,
+            productName: products.name,
+            productImageUrl: products.imageUrl,
+            productDescription: products.description,
+            productIsAvailable: products.isAvailable,
+            cartId: cartItems.cartId,
+            price: cartItems.price,
+            quantity: cartItems.quantity,
+            note: cartItems.note,
+          },
         })
-        .from(cartItems)
-        .where(eq(cartItems.cartId, dbUser.cartId))
-        .leftJoin(products, eq(products.id, cartItems.productId));
+        .from(cart)
+        .leftJoin(cartItems, eq(cartItems.cartId, dbUser.cartId))
+        .leftJoin(products, eq(products.id, cartItems.productId))
+        .where(eq(cart.id, dbUser.cartId));
+
+      if (!allCartData.length) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Cart is empty" });
+      }
+
+      const cartData = allCartData[0];
+      const cartItemsData = allCartData.map((item) => item.cartItems);
 
       const cartDiscountData = await db
-        .select({
-          amount: discount.amount,
-          stripePromoCodeId: discount.stripePromoCodeId,
-        })
+        .select({ amount: discount.amount })
         .from(cartDiscount)
-        .where(eq(cartDiscount.cartId, dbUser.cartId))
+        .where(
+          and(
+            eq(cartDiscount.cartId, dbUser.cartId),
+            eq(cartDiscount.used, false),
+          ),
+        )
         .leftJoin(discount, eq(discount.id, cartDiscount.discountId));
 
       if (cartItemsData.length === 0) {
@@ -116,19 +126,18 @@ export const orderRouter = createTRPCRouter({
         });
       }
 
-      const subTotal = cartItemsData.reduce(
-        (acc, item) => acc + parseFloat(item.price) * item.quantity,
-        0,
-      );
-
-      const totalDiscount = cartDiscountData?.reduce(
+      const totalDiscount = cartDiscountData.reduce(
         (acc, discount) => acc + Number(discount.amount),
         0,
       );
-
-      const taxRate = 0.15;
-      const tax = subTotal * taxRate;
-      const totalPrice = subTotal - totalDiscount + tax;
+      const subTotal = cartItemsData.reduce(
+        (acc, item) => acc + Number(item.price || 0) * (item.quantity || 0),
+        0,
+      );
+      const subTotalAfterDiscount = subTotal - totalDiscount;
+      const tax = subTotalAfterDiscount * 0.15; // 15% Tax
+      let totalPrice = subTotalAfterDiscount + tax;
+      totalPrice = Math.max(totalPrice, 0);
 
       const lastOrder = await db
         .select({ orderNumber: order.orderNumber })
@@ -169,16 +178,16 @@ export const orderRouter = createTRPCRouter({
               description: item.productDescription!,
               images: [item.productImageUrl!],
             },
-            unit_amount: parseFloat(item.price) * 100,
+            unit_amount: parseFloat(item.price || "0") * 100,
           },
-          quantity: item.quantity,
+          quantity: item.quantity || 0,
           tax_rates: [STRIPE_TAX_RATE],
         })),
         currency: "USD",
         mode: "payment",
-        discounts: cartDiscountData.map((discount) => ({
-          promotion_code: discount.stripePromoCodeId || "",
-        })),
+        discounts: cartData.stripePromoCodeId
+          ? [{ promotion_code: cartData.stripePromoCodeId }]
+          : undefined,
         metadata: {
           orderId: newOrder.id,
         },
@@ -186,22 +195,21 @@ export const orderRouter = createTRPCRouter({
         cancel_url: cancelUrl,
       });
 
-      await db
-        .update(order)
-        .set({
-          sessionUrl: session.url,
-        })
-        .where(eq(order.id, newOrder.id));
-
-      const newOrderItems = cartItemsData.map((item) => ({
-        orderId: newOrder.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        note: item.note,
-      }));
-
-      await db.insert(orderItems).values(newOrderItems);
+      await Promise.all([
+        db
+          .update(order)
+          .set({ sessionUrl: session.url })
+          .where(eq(order.id, newOrder.id)),
+        db.insert(orderItems).values(
+          cartItemsData.map((item) => ({
+            orderId: newOrder.id,
+            productId: item.productId || "",
+            quantity: item.quantity || 0,
+            price: item.price || "0",
+            note: item.note,
+          })),
+        ),
+      ]);
 
       return newOrder;
     }),

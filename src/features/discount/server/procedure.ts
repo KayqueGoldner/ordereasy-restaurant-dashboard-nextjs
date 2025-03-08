@@ -9,7 +9,6 @@ import {
 } from "@/trpc/init";
 import { discount } from "@/db/schema/discount";
 import { TRPCError } from "@trpc/server";
-import { stripe } from "@/lib/stripe";
 
 export const discountRouter = createTRPCRouter({
   getOne: baseProcedure
@@ -53,29 +52,12 @@ export const discountRouter = createTRPCRouter({
         });
       }
 
-      const coupon = await stripe.coupons.create({
-        amount_off: Number(amount) * 100,
-        currency: "USD",
-        duration: "once",
-      });
-
-      const promoCode = await stripe.promotionCodes.create({
-        coupon: coupon.id,
-        code: code,
-        max_redemptions: 1,
-        expires_at: Math.floor(new Date(expires).getTime() / 1000),
-      });
-
       const [discountData] = await db
         .insert(discount)
         .values({
           code,
           amount,
           expires,
-          stripeCouponId: coupon.id,
-          stripePromoCodeId: promoCode.id,
-          stripePromoCodeActive: promoCode.active,
-          stripePromoCodeTimesRedeemed: promoCode.times_redeemed,
         })
         .returning();
 

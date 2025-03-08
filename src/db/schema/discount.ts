@@ -5,8 +5,6 @@ import {
   timestamp,
   varchar,
   uniqueIndex,
-  boolean,
-  integer,
 } from "drizzle-orm/pg-core";
 
 import { cartDiscount } from "@/db/schema/cart";
@@ -20,10 +18,6 @@ export const discount = pgTable(
     code: varchar("code", { length: 256 }).notNull(),
     amount: text("amount").notNull(),
     expires: timestamp("expires").notNull(),
-    stripePromoCodeId: text("stripe_promo_code_id"),
-    stripeCouponId: text("stripe_coupon_id"),
-    stripePromoCodeTimesRedeemed: integer("stripe_promo_code_times_redeemed"),
-    stripePromoCodeActive: boolean("stripe_promo_code_active"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

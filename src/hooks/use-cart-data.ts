@@ -97,21 +97,25 @@ export const useCartData = create<UseCartDataState>()(
   ),
 );
 
-// Função auxiliar para recalcular subtotal, imposto e total
 export const calculateCartInfo = (items: Product[], totalDiscount: string) => {
   const subTotal = items.reduce(
     (sum, item) => sum + Number(item.price) * item.quantity,
     0,
   );
-  const tax = subTotal * 0.15; // 15% Tax
-  let total = subTotal - Number(totalDiscount) + tax;
+
+  const discount = Number(totalDiscount);
+  const subTotalAfterDiscount = subTotal - discount;
+
+  const tax = subTotalAfterDiscount * 0.15; // 15% Tax
+  let total = subTotalAfterDiscount + tax;
 
   total = Math.max(total, 0);
 
   return {
     items,
-    totalDiscount: Number(totalDiscount).toFixed(2).toString(),
+    totalDiscount: discount.toFixed(2).toString(),
     subTotal: subTotal.toFixed(2),
+    subTotalAfterDiscount: subTotalAfterDiscount.toFixed(2),
     tax: tax.toFixed(2),
     total: total.toFixed(2),
   };

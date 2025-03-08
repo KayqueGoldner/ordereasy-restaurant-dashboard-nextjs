@@ -1,11 +1,11 @@
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { stripe } from "@/lib/stripe";
 import { db } from "@/db/drizzle";
 import { order } from "@/db/schema/order";
-import { cartItems } from "@/db/schema/cart";
+import { cart, cartDiscount, cartItems } from "@/db/schema/cart";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -49,14 +49,27 @@ export async function POST(req: Request) {
       return new Response("No order found", { status: 400 });
     }
 
-    await db
+    const [updatedOrder] = await db
       .update(order)
       .set({
         paymentDate: new Date(),
         paymentStatus: "SUCCEEDED",
         updatedAt: new Date(),
       })
-      .where(eq(order.id, orderId));
+      .where(eq(order.id, orderId))
+      .returning();
+
+    await db
+      .update(cart)
+      .set({ stripePromoCodeId: "" })
+      .where(eq(cart.id, updatedOrder.cartId));
+
+    await db
+      .update(cartDiscount)
+      .set({
+        used: true,
+      })
+      .where(and(eq(cartDiscount.cartId, updatedOrder.cartId)));
 
     await db
       .delete(cartItems)

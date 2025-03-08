@@ -17,6 +17,7 @@ export const cart = pgTable("cart", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  stripePromoCodeId: text("stripe_promo_code_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

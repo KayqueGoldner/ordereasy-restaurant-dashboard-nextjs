@@ -13,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { products } from "@/db/schema/products";
 import { categories } from "@/db/schema/categories";
 import { discount } from "@/db/schema/discount";
+import { stripe } from "@/lib/stripe";
 
 export const cartRouter = createTRPCRouter({
   getData: baseProcedure.query(async ({ ctx }) => {
@@ -53,9 +54,15 @@ export const cartRouter = createTRPCRouter({
         discountId: cartDiscount.discountId,
         amount: discount.amount,
         expires: discount.expires,
+        used: cartDiscount.used,
       })
       .from(cartDiscount)
-      .where(eq(cartDiscount.cartId, dbUser.cartId as string))
+      .where(
+        and(
+          eq(cartDiscount.cartId, dbUser.cartId as string),
+          eq(cartDiscount.used, false),
+        ),
+      )
       .leftJoin(discount, eq(discount.id, cartDiscount.discountId));
 
     return {
@@ -92,13 +99,25 @@ export const cartRouter = createTRPCRouter({
         });
       }
 
-      const [existingCartDiscount] = await db
-        .select()
+      const cartDiscountData = await db
+        .select({
+          id: cartDiscount.id,
+          discountId: discount.id,
+          amount: discount.amount,
+          expires: discount.expires,
+        })
         .from(cartDiscount)
-        .where(eq(cartDiscount.discountId, discountData.id))
-        .limit(1);
+        .leftJoin(discount, eq(discount.id, cartDiscount.discountId))
+        .where(
+          and(
+            eq(cartDiscount.cartId, dbUser.cartId as string),
+            eq(cartDiscount.used, false),
+          ),
+        );
 
-      console.log(existingCartDiscount);
+      const existingCartDiscount = cartDiscountData.find(
+        (item) => item.discountId === discountData.id,
+      );
 
       if (existingCartDiscount) {
         throw new TRPCError({
@@ -107,6 +126,30 @@ export const cartRouter = createTRPCRouter({
         });
       }
 
+      const allDiscounts = [
+        ...cartDiscountData.map((item) => ({
+          amount: item.amount,
+          expires: item.expires,
+        })),
+        { amount: discountData.amount, expires: discountData.expires },
+      ];
+      const totalDiscount = allDiscounts.reduce(
+        (acc, item) => acc + Number(item.amount),
+        0,
+      );
+
+      const coupon = await stripe.coupons.create({
+        amount_off: totalDiscount * 100,
+        currency: "USD",
+        duration: "once",
+      });
+
+      const promoCode = await stripe.promotionCodes.create({
+        coupon: coupon.id,
+        code: `ORDEREASY_${dbUser.cartId}_${Date.now()}`,
+        max_redemptions: 1,
+      });
+
       const data = await db
         .insert(cartDiscount)
         .values({
@@ -114,6 +157,11 @@ export const cartRouter = createTRPCRouter({
           discountId: discountData.id,
         })
         .returning();
+
+      await db
+        .update(cart)
+        .set({ stripePromoCodeId: promoCode.id })
+        .where(eq(cart.id, dbUser.cartId as string));
 
       return { data };
     }),
