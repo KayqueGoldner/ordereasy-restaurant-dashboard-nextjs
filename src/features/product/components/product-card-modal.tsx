@@ -96,6 +96,7 @@ export const ProductCardModal = () => {
                 width={256}
                 height={256}
                 className="h-48 w-56 rounded-xl object-cover"
+                unoptimized
               />
             </div>
             <div className="mt-1.5 space-y-1.5">

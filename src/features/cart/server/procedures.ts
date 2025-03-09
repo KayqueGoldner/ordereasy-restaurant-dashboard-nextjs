@@ -104,16 +104,12 @@ export const cartRouter = createTRPCRouter({
           id: cartDiscount.id,
           discountId: discount.id,
           amount: discount.amount,
+          used: cartDiscount.used,
           expires: discount.expires,
         })
         .from(cartDiscount)
         .leftJoin(discount, eq(discount.id, cartDiscount.discountId))
-        .where(
-          and(
-            eq(cartDiscount.cartId, dbUser.cartId as string),
-            eq(cartDiscount.used, false),
-          ),
-        );
+        .where(and(eq(cartDiscount.cartId, dbUser.cartId as string)));
 
       const existingCartDiscount = cartDiscountData.find(
         (item) => item.discountId === discountData.id,
@@ -127,10 +123,19 @@ export const cartRouter = createTRPCRouter({
       }
 
       const allDiscounts = [
-        ...cartDiscountData.map((item) => ({
-          amount: item.amount,
-          expires: item.expires,
-        })),
+        ...cartDiscountData.map((item) => {
+          if (item.used) {
+            return {
+              amount: 0,
+              expires: item.expires,
+            };
+          }
+
+          return {
+            amount: item.amount,
+            expires: item.expires,
+          };
+        }),
         { amount: discountData.amount, expires: discountData.expires },
       ];
       const totalDiscount = allDiscounts.reduce(

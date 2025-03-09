@@ -1,10 +1,11 @@
 import { TbMenu3, TbActivity } from "react-icons/tb";
 import { IoLogOutOutline, IoSettingsOutline } from "react-icons/io5";
-import { FaShop, FaCartShopping } from "react-icons/fa6";
+import { FaShop } from "react-icons/fa6";
 import { FaChartPie } from "react-icons/fa";
 import { UserIcon } from "lucide-react";
 import { MdInventory } from "react-icons/md";
 import { User } from "next-auth";
+import { GiMeal } from "react-icons/gi";
 
 import {
   Sheet,
@@ -29,9 +30,9 @@ const LINKS = {
       url: "/",
     },
     {
-      label: "Cart",
-      icon: <FaCartShopping className="size-[18px]" />,
-      url: "/cart",
+      label: "Orders",
+      icon: <GiMeal className="size-[18px]" />,
+      url: "/orders",
     },
     {
       label: "Activity",

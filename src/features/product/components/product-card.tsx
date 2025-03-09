@@ -24,6 +24,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           width={256}
           height={256}
           className="size-full object-cover"
+          unoptimized
         />
       </div>
       <div className="w-full space-y-2">

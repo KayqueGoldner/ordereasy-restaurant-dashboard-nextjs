@@ -28,6 +28,7 @@ export const columns: ColumnDef<ProductItem>[] = [
           height={124}
           alt="Product image"
           className="min-w-[100px] rounded-md"
+          unoptimized
         />
       );
     },

@@ -70,6 +70,7 @@ export const CartCard = ({ isSidebarOpen, product }: CartCardProps) => {
           width={256}
           height={256}
           className="size-full object-cover"
+          unoptimized
         />
       </div>
       <div
