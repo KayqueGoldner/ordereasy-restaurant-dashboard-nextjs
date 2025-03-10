@@ -53,6 +53,7 @@ export const CustomerCartTable = () => {
           paymentStatus: order.paymentStatus!,
           orderStatus: order.status!,
           createdAt: order.createdAt!,
+          order: order.id!,
         });
       }
 

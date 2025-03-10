@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FaCcStripe } from "react-icons/fa";
-import { FaCartShopping } from "react-icons/fa6";
+import { GiMeal } from "react-icons/gi";
 
 import { trpc } from "@/trpc/client";
 import {
@@ -137,9 +137,9 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
             </Button>
           ) : (
             <Button className="w-full" asChild>
-              <Link href="/cart">
-                <FaCartShopping />
-                Go to cart
+              <Link href="/orders">
+                <GiMeal />
+                Go to orders
               </Link>
             </Button>
           )}

@@ -2,9 +2,11 @@
 
 import { ArrowUpDown } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { CustomerGetOrdersOutput } from "@/features/customer/types";
+import { cn } from "@/lib/utils";
 
 export type OrderItem = {
   id: string;
@@ -14,6 +16,7 @@ export type OrderItem = {
   paymentStatus: CustomerGetOrdersOutput[number]["paymentStatus"];
   orderStatus: CustomerGetOrdersOutput[number]["status"];
   createdAt: Date;
+  order: string;
 };
 
 export const columns: ColumnDef<OrderItem>[] = [
@@ -42,10 +45,10 @@ export const columns: ColumnDef<OrderItem>[] = [
     header: "Products",
     cell: (info) => {
       return (
-        <ul className="text-lg font-medium">
+        <ul className="max-w-xs text-lg font-medium">
           {(info.getValue() as string[]).map((product, index) => {
             return (
-              <li key={index} className="text-base/7 font-medium">
+              <li key={index} className="truncate text-base/7 font-medium">
                 {product}
               </li>
             );
@@ -112,9 +115,9 @@ export const columns: ColumnDef<OrderItem>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-max gap-2 px-0"
+          className="w-max gap-2"
         >
-          Created At
+          Date and Time
           <ArrowUpDown className="size-4" />
         </Button>
       );
@@ -122,8 +125,27 @@ export const columns: ColumnDef<OrderItem>[] = [
     cell: (info) => {
       return (
         <div className="pl-4 text-sm font-medium">
-          {new Date(info.getValue() as Date).toLocaleDateString()}
+          {new Date(info.getValue() as Date).toLocaleDateString()} -{" "}
+          {new Date(info.getValue() as Date).toLocaleTimeString("en-US", {
+            timeZone: "UTC",
+          })}
         </div>
+      );
+    },
+  },
+  {
+    accessorKey: "order",
+    cell: (info) => {
+      return (
+        <Link
+          href={`/order/${info.getValue() as string}`}
+          className={cn(
+            buttonVariants(),
+            "bg-transparent px-0 text-blue-500 shadow-none hover:bg-transparent",
+          )}
+        >
+          Detail
+        </Link>
       );
     },
   },
