@@ -1,10 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, MoreVertical } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export type ProductItem = {
   id: string;
@@ -99,6 +106,28 @@ export const columns: ColumnDef<ProductItem>[] = [
         <div className="pl-4 text-sm font-medium">
           {new Date(info.getValue() as Date).toLocaleDateString()}
         </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="px-3">
+              <MoreVertical className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="left">
+            <DropdownMenuItem asChild>
+              <Link href={`/admin/inventory/${row.original.id}`}>Edit</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive hover:!bg-destructive hover:!text-white">
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },
