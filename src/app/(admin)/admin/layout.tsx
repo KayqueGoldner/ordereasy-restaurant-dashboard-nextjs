@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/logo";
 import { Separator } from "@/components/ui/separator";
 import { HeaderCalendar } from "@/app/(root)/_components/header-calendar";
-import { AdminSidebar } from "@/app/admin/_components/admin-sidebar";
+import { AdminSidebar } from "@/app/(admin)/admin/_components/admin-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { auth } from "@/lib/auth";

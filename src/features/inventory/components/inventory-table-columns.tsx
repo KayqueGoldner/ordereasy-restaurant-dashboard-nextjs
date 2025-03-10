@@ -35,10 +35,27 @@ export const columns: ColumnDef<ProductItem>[] = [
   },
   {
     accessorKey: "name",
-    header: "Name",
-    cell: (info) => {
+    header: ({ column }) => {
       return (
-        <div className="text-lg font-medium">{info.getValue() as string}</div>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="px-0"
+        >
+          Name
+          <ArrowUpDown className="ml-2 size-4" />
+        </Button>
+      );
+    },
+    cell: ({ getValue, row }) => {
+      return (
+        <div className="space-y-2">
+          <h1 className="text-base font-medium">{getValue() as string}</h1>
+          {/* render category */}
+          <div className="w-max rounded-md bg-primary px-2 py-0.5 text-white">
+            {row.original.category}
+          </div>
+        </div>
       );
     },
   },
@@ -47,17 +64,8 @@ export const columns: ColumnDef<ProductItem>[] = [
     header: "Price",
     cell: (info) => {
       return (
-        <div className="text-lg font-medium">${info.getValue() as number}</div>
-      );
-    },
-  },
-  {
-    accessorKey: "category",
-    header: "Category",
-    cell: (info) => {
-      return (
-        <div className="w-max rounded-md bg-primary px-2 py-0.5 text-white">
-          {info.getValue() as string}
+        <div className="text-base font-medium">
+          ${info.getValue() as number}
         </div>
       );
     },

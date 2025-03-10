@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FaChartPie, FaShop } from "react-icons/fa6";
 import { MdInventory } from "react-icons/md";
 import { Session } from "next-auth";
+import { UserIcon } from "lucide-react";
 
 import {
   Sidebar,
@@ -16,8 +17,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { UserIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const items = [
   {
@@ -42,6 +44,8 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar = ({ session }: AdminSidebarProps) => {
+  const sidebar = useSidebar();
+
   return (
     <Sidebar collapsible="icon" className="border-none">
       <SidebarContent className="bg-white">
@@ -69,7 +73,13 @@ export const AdminSidebar = ({ session }: AdminSidebarProps) => {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex w-full items-center gap-2 rounded-xl border border-neutral-200 px-2 py-1">
+        <div
+          className={cn(
+            "flex w-full items-center gap-2 rounded-xl border border-neutral-200 px-2 py-1",
+            sidebar.state === "collapsed" &&
+              "justify-center border-none px-0 py-0",
+          )}
+        >
           {session.user.image ? (
             <Image
               src={session.user.image}
@@ -83,10 +93,12 @@ export const AdminSidebar = ({ session }: AdminSidebarProps) => {
               <UserIcon className="size-5" />
             </div>
           )}
-          <div className="flex-1">
+          <div
+            className={cn("flex-1", sidebar.state === "collapsed" && "hidden")}
+          >
             <h1 className="text-sm">{session.user.name}</h1>
-            <h3 className="text-sm capitalize text-muted-foreground">
-              {session.user.role?.toLocaleLowerCase()}
+            <h3 className="text-sm text-muted-foreground">
+              {session.user.email}
             </h3>
           </div>
         </div>
