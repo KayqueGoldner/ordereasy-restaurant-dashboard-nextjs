@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, lt } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, lt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { db } from "@/db/drizzle";
@@ -31,16 +31,8 @@ export const productsRouter = createTRPCRouter({
 
       const data = await db
         .select({
-          id: products.id,
-          name: products.name,
-          imageUrl: products.imageUrl,
+          ...getTableColumns(products),
           categoryName: categories.name,
-          description: products.description,
-          price: products.price,
-          isAvailable: products.isAvailable,
-          categoryId: products.categoryId,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
         })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))

@@ -124,6 +124,11 @@ export const ProductsListSuspense = ({
                   product={{
                     ...product,
                     categoryName: product.categoryName as string,
+                    calories: product.calories || "",
+                    ingredients: product.ingredients || "",
+                    allergens: product.allergens || "",
+                    preparationTime: product.preparationTime || "",
+                    serves: product.serves || 0,
                     quantity: 1,
                   }}
                 />

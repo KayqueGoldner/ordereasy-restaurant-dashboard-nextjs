@@ -38,6 +38,11 @@ export const cartRouter = createTRPCRouter({
         categoryName: categories.name,
         imageUrl: products.imageUrl,
         price: cartItems.price,
+        calories: products.calories,
+        ingredients: products.ingredients,
+        allergens: products.allergens,
+        preparationTime: products.preparationTime,
+        serves: products.serves,
         quantity: cartItems.quantity,
         note: cartItems.note,
       })

@@ -5,6 +5,11 @@ interface Product {
   description: string;
   categoryName: string;
   price: string;
+  calories: string;
+  ingredients: string;
+  allergens: string;
+  preparationTime: number;
+  serves: number;
   quantity: number;
   note?: string | null;
 }

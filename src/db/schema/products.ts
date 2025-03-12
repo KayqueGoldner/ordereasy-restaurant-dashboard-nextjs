@@ -1,5 +1,6 @@
 import {
   boolean,
+  integer,
   numeric,
   pgTable,
   text,
@@ -27,8 +28,8 @@ export const products = pgTable("products", {
   calories: numeric("calories"),
   ingredients: text("ingredients"),
   allergens: text("allergens"),
-  preparationTime: numeric("preparation_time"),
-  serves: numeric("serves"),
+  preparationTime: integer("preparation_time"),
+  serves: integer("serves"),
   categoryId: text("category_id")
     .notNull()
     .references(() => categories.id, { onDelete: "set null" }),

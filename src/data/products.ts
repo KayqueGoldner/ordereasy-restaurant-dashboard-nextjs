@@ -78,7 +78,7 @@ export const products = [
     isAvailable: true,
     calories: 120,
     ingredients: "Lemon, water, sugar, mint",
-    allergens: "None",
+    allergens: "",
     preparationTime: 5,
     serves: 1,
   },

@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useCartData } from "@/hooks/use-cart-data";
 import { ResponsiveModal } from "@/components/responsive-modal";
+import { formatMinutesToHoursAndMinutes } from "@/lib/utils";
 
 import { useProductCardModal } from "../hooks/use-product-card-modal";
 
@@ -64,6 +65,11 @@ export const ProductCardModal = () => {
       categoryName: productCard.categoryName,
       name: productCard.name as string,
       description: productCard.description,
+      calories: productCard.calories,
+      allergens: productCard.allergens,
+      ingredients: productCard.ingredients,
+      preparationTime: productCard.preparationTime,
+      serves: productCard.serves,
       price: productCard.price,
       quantity,
       note,
@@ -86,7 +92,7 @@ export const ProductCardModal = () => {
       open={!!productCard}
       onOpenChange={closeModal}
     >
-      <div className="overflow-y-auto">
+      <div className="max-h-[90vh] overflow-y-auto">
         <div className="px-4 py-3">
           <div className="mt-2">
             <div className="flex items-center justify-center rounded-xl bg-neutral-100">
@@ -110,6 +116,32 @@ export const ProductCardModal = () => {
               <h3 className="text-xl font-bold text-primary">
                 ${productCard.price}
               </h3>
+              <ul className="space-y-1.5">
+                <li className="text-sm font-medium">
+                  <span className="text-primary">Serves:</span>{" "}
+                  {productCard.serves}{" "}
+                  {productCard.serves > 1 ? "People" : "Person"}
+                </li>
+                <li className="text-sm font-medium">
+                  <span className="text-primary">ingredients:</span>{" "}
+                  {productCard.ingredients}
+                </li>
+                <li className="text-sm font-medium">
+                  <span className="text-primary">Calories:</span>{" "}
+                  {productCard.calories}
+                </li>
+                {productCard.allergens && (
+                  <li className="text-sm font-medium">
+                    <span className="text-primary">Allergens:</span>{" "}
+                    {productCard.allergens}
+                  </li>
+                )}
+                <li className="text-sm font-medium">
+                  <span className="text-primary">Preparation Time:</span>{" "}
+                  {/* format time in hours/minutes */}
+                  {formatMinutesToHoursAndMinutes(productCard.preparationTime)}
+                </li>
+              </ul>
               <Textarea
                 placeholder="Add notes to order"
                 className="block h-20 resize-none rounded-xl border-0 bg-neutral-100"
