@@ -20,10 +20,15 @@ export const products = pgTable("products", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: text("name").notNull(),
-  description: varchar("description", { length: 124 }).notNull(),
+  description: varchar("description", { length: 255 }).notNull(),
   imageUrl: text("image_url").notNull(),
   isAvailable: boolean("is_available").notNull(),
   price: numeric("price").notNull(),
+  calories: numeric("calories"),
+  ingredients: text("ingredients"),
+  allergens: text("allergens"),
+  preparationTime: numeric("preparation_time"),
+  serves: numeric("serves"),
   categoryId: text("category_id")
     .notNull()
     .references(() => categories.id, { onDelete: "set null" }),
