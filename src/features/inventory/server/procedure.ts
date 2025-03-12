@@ -5,6 +5,7 @@ import { db } from "@/db/drizzle";
 import { productInsertSchema, products } from "@/db/schema/products";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { categories } from "@/db/schema/categories";
+import { TRPCError } from "@trpc/server";
 
 export const inventoryRouter = createTRPCRouter({
   getProducts: protectedProcedure.query(async () => {
@@ -38,6 +39,29 @@ export const inventoryRouter = createTRPCRouter({
         .update(products)
         .set(input)
         .where(eq(products.id, input.id as string))
+        .returning();
+
+      return product;
+    }),
+  deleteProduct: protectedProcedure
+    .input(
+      z.object({
+        productId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { productId } = input;
+
+      if (!productId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Product ID is required",
+        });
+      }
+
+      const [product] = await db
+        .delete(products)
+        .where(eq(products.id, productId))
         .returning();
 
       return product;

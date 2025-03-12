@@ -47,10 +47,10 @@ export const order = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     userId: text("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "set null" }),
     cartId: text("cart_id")
       .notNull()
-      .references(() => cart.id, { onDelete: "cascade" }),
+      .references(() => cart.id, { onDelete: "set null" }),
     address: text("address").notNull(),
     subTotal: numeric("sub_total", { precision: 10, scale: 2 }).notNull(),
     totalDiscount: numeric("total_discount", {
@@ -101,10 +101,11 @@ export const orderItems = pgTable(
     orderId: text("order_id")
       .notNull()
       .references(() => order.id, { onDelete: "cascade" }),
-    productId: text("product_id")
-      .notNull()
-      .references(() => products.id, { onDelete: "restrict" }),
+    productId: text("product_id").references(() => products.id, {
+      onDelete: "set null",
+    }),
     quantity: integer("quantity").notNull(),
+    name: text("name").notNull(),
     price: numeric("price", { precision: 10, scale: 2 }).notNull(),
     note: varchar("note", { length: 255 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),

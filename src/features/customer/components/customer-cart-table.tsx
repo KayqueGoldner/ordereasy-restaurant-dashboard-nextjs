@@ -34,7 +34,7 @@ export const CustomerCartTable = () => {
     const groupedOrders = orders.reduce((acc, order) => {
       const existingOrder = acc.find((item) => item.id === order.id);
 
-      const productWithQuantity = `${order.orderItems.quantity}x ${order.orderItems.productName}`;
+      const productWithQuantity = `${order.productQuantity}x ${order.productName}`;
 
       if (existingOrder) {
         const existingProductIndex = existingOrder.products.findIndex(

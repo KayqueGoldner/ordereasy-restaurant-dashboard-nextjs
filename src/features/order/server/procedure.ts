@@ -24,13 +24,12 @@ export const orderRouter = createTRPCRouter({
           users,
           order,
           orderItems,
-          productName: products.name,
+          productName: orderItems.name,
         })
         .from(order)
         .where(and(eq(order.id, orderId), eq(order.userId, userId as string)))
         .leftJoin(users, eq(order.userId, users.id))
-        .leftJoin(orderItems, eq(orderItems.orderId, order.id))
-        .leftJoin(products, eq(products.id, orderItems.productId)); // Deixe como leftJoin para evitar dependência total
+        .leftJoin(orderItems, eq(orderItems.orderId, order.id));
 
       return existingOrder;
     }),
@@ -204,6 +203,7 @@ export const orderRouter = createTRPCRouter({
           cartItemsData.map((item) => ({
             orderId: newOrder.id,
             productId: item.productId || "",
+            name: item.productName!,
             quantity: item.quantity || 0,
             price: item.price || "0",
             note: item.note,
