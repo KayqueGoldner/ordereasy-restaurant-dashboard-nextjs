@@ -90,8 +90,7 @@ export const productsRouter = createTRPCRouter({
     .input(productInsertSchema)
     .mutation(async ({ ctx, input }) => {
       const { role } = ctx.user;
-      const { name, description, price, categoryId, imageUrl, isAvailable } =
-        input;
+      const values = input;
 
       if (role !== "ADMIN") {
         throw new TRPCError({
@@ -100,14 +99,7 @@ export const productsRouter = createTRPCRouter({
         });
       }
 
-      const product = await db.insert(products).values({
-        name,
-        imageUrl,
-        description,
-        price,
-        categoryId,
-        isAvailable,
-      });
+      const product = await db.insert(products).values({ ...values });
 
       return product;
     }),

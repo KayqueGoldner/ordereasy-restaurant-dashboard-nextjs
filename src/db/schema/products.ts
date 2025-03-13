@@ -25,7 +25,7 @@ export const products = pgTable("products", {
   imageUrl: text("image_url").notNull(),
   isAvailable: boolean("is_available").notNull(),
   price: numeric("price").notNull(),
-  calories: numeric("calories"),
+  calories: integer("calories"),
   ingredients: text("ingredients"),
   allergens: text("allergens"),
   preparationTime: integer("preparation_time"),

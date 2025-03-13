@@ -16,12 +16,12 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="h-screen w-full p-2">
+    <div className="relative h-screen w-full overflow-hidden p-2">
       <SidebarProvider className="h-full min-h-full overflow-hidden">
         <AdminSidebar session={session} />
         <div className="flex grow flex-col gap-3">
           <header className="flex h-12 shrink-0 items-center justify-between gap-5 rounded-xl bg-white px-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 overflow-hidden">
               <SidebarTrigger />
               <Logo />
               <Separator className="h-px w-10" />

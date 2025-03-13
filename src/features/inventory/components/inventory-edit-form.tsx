@@ -14,6 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import {
   Select,
@@ -69,19 +70,20 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="imageUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Image URL" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Image URL" />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="name"
@@ -91,6 +93,7 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
                   <FormControl>
                     <Input {...field} placeholder="Name" />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -103,6 +106,7 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
                   <FormControl>
                     <Input {...field} type="number" placeholder="Price" />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -128,7 +132,104 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
                         </SelectItem>
                       ))}
                     </SelectContent>
+                    <FormMessage />
                   </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ingredients"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ingredients</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      placeholder="Ingredients"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="serves"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Serves</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      value={field.value || 0}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(Number(value));
+                      }}
+                      placeholder="Serves"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="calories"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Calories</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      value={field.value || 0}
+                      placeholder="Calories"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="allergens"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Allergens</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ""}
+                      placeholder="Allergens"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="preparationTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preparation Time (minutes)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      value={field.value || 0}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        field.onChange(Number(value));
+                      }}
+                      placeholder="Preparation time (minutes)"
+                    />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -143,6 +244,7 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
                 <FormControl>
                   <Textarea {...field} placeholder="Description" rows={5} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -159,6 +261,7 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
