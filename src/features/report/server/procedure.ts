@@ -1,4 +1,4 @@
-import { desc, sql, and, eq, gte, lte } from "drizzle-orm";
+import { desc, sql, and, eq, gte } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -81,9 +81,7 @@ export const reportRouter = createTRPCRouter({
   getTopProducts: protectedProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(50).default(10),
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
+        limit: z.number().min(1).max(50).default(5),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -96,30 +94,27 @@ export const reportRouter = createTRPCRouter({
         });
       }
 
-      const { limit, startDate, endDate } = input;
+      const { limit } = input;
 
       const query = await db
         .select({
           productId: orderItems.productId,
+          productImage: products.imageUrl,
           productName: products.name,
           totalQuantity: sql`coalesce(sum(${orderItems.quantity}), 0)`
             .mapWith(Number)
             .as("totalQuantity"),
-          totalRevenue: sql`coalesce(sum(${orderItems.price}), 0)`
-            .mapWith(Number)
-            .as("totalRevenue"),
+          totalRevenue:
+            sql`coalesce(sum(${orderItems.price} * ${orderItems.quantity}), 0)`
+              .mapWith(Number)
+              .as("totalRevenue"),
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
         .innerJoin(order, eq(orderItems.orderId, order.id))
-        .where(
-          and(
-            startDate ? gte(order.createdAt, startDate) : undefined,
-            endDate ? lte(order.createdAt, endDate) : undefined,
-          ),
-        )
-        .groupBy(orderItems.productId, products.name)
-        .orderBy(desc(sql`totalQuantity`))
+        .where(eq(order.paymentStatus, "SUCCEEDED"))
+        .orderBy(sql`coalesce(sum(${orderItems.quantity}), 0) DESC`)
+        .groupBy(orderItems.productId, products.name, products.imageUrl)
         .limit(limit);
 
       return query;

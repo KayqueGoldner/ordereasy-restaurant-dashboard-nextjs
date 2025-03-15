@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { SalesOverview } from "@/features/report/components/sales-overview";
 import { HydrateClient, trpc } from "@/trpc/server";
 import { auth } from "@/lib/auth";
+import { FavoriteProducts } from "@/features/report/components/favorite-products";
 
 export const metadata: Metadata = {
   title: "Reports | OrderEasy Dashboard",
@@ -27,10 +28,14 @@ const ReportsPage = async ({
   void trpc.report.getSalesOverview.prefetch({
     datePeriod: datePeriod || "MONTHLY",
   });
+  void trpc.report.getTopProducts.prefetch({
+    limit: 5,
+  });
 
   return (
     <HydrateClient>
       <SalesOverview />
+      <FavoriteProducts />
     </HydrateClient>
   );
 };
