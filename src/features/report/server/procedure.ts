@@ -78,6 +78,123 @@ export const reportRouter = createTRPCRouter({
       return query;
     }),
 
+  getSalesChartData: protectedProcedure
+    .input(
+      z.object({
+        datePeriod: z.enum(["MONTHLY", "QUARTERLY", "YEARLY"]),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { role } = ctx.user;
+
+      if (role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not authorized to access this resource",
+        });
+      }
+
+      const { datePeriod } = input;
+
+      // Determine the date format and period based on the selected date period
+      let startDate;
+      let groupByFormat;
+
+      if (datePeriod === "MONTHLY") {
+        // For monthly, group by day
+        groupByFormat = "day";
+        startDate = new Date(new Date().setDate(1)); // First day of current month
+      } else if (datePeriod === "QUARTERLY") {
+        // For quarterly, group by week
+        groupByFormat = "week";
+        startDate = new Date(
+          new Date().setMonth(Math.floor(new Date().getMonth() / 3) * 3),
+        );
+      } else {
+        // For yearly, group by month
+        groupByFormat = "month";
+        startDate = new Date(new Date().setMonth(0)); // First day of current year
+      }
+
+      const orderWhereFilter = and(
+        eq(order.paymentStatus, "SUCCEEDED"),
+        gte(order.createdAt, startDate),
+      );
+
+      // For monthly view, use date_trunc to ensure we're grouping by day properly
+      const dateExpression =
+        datePeriod === "MONTHLY"
+          ? sql`date_trunc('day', ${order.createdAt})`
+          : datePeriod === "QUARTERLY"
+            ? sql`date_trunc('week', ${order.createdAt})`
+            : sql`date_trunc('month', ${order.createdAt})`;
+
+      // Query for sales data grouped by the appropriate time period
+      const salesData = await db
+        .select({
+          // Use date_trunc for grouping and TO_CHAR for formatting
+          periodFormatted:
+            datePeriod === "MONTHLY"
+              ? sql`TO_CHAR(date_trunc('day', ${order.createdAt}), 'YYYY-MM-DD')`.as(
+                  "periodFormatted",
+                )
+              : datePeriod === "QUARTERLY"
+                ? sql`TO_CHAR(date_trunc('week', ${order.createdAt}), 'YYYY-"W"IW')`.as(
+                    "periodFormatted",
+                  )
+                : sql`TO_CHAR(date_trunc('month', ${order.createdAt}), 'YYYY-MM')`.as(
+                    "periodFormatted",
+                  ),
+          period: dateExpression,
+          totalSales: sql`coalesce(sum(${order.totalPrice}), 0)`
+            .mapWith(Number)
+            .as("totalSales"),
+          orderCount: sql`count(${order.id})`.mapWith(Number).as("orderCount"),
+          averageOrderValue: sql`coalesce(avg(${order.totalPrice}), 0)`
+            .mapWith(Number)
+            .as("averageOrderValue"),
+          customersCount: sql`count(distinct ${order.userId})`
+            .mapWith(Number)
+            .as("customersCount"),
+        })
+        .from(order)
+        .where(orderWhereFilter)
+        // Group by the truncated date to ensure one entry per day/week/month
+        .groupBy(dateExpression)
+        .orderBy(dateExpression);
+
+      // Transform the data for chart visualization
+      const chartData = {
+        labels: salesData.map((item) => item.periodFormatted),
+        dates: salesData.map((item) => item.period),
+        datasets: [
+          {
+            name: "Total Sales",
+            data: salesData.map((item) => item.totalSales),
+            type: "currency",
+          },
+          {
+            name: "Order Count",
+            data: salesData.map((item) => item.orderCount),
+            type: "number",
+          },
+          {
+            name: "Average Order Value",
+            data: salesData.map((item) => item.averageOrderValue),
+            type: "currency",
+          },
+          {
+            name: "Customer Count",
+            data: salesData.map((item) => item.customersCount),
+            type: "number",
+          },
+        ],
+        period: groupByFormat,
+      };
+
+      return chartData;
+    }),
+
   getTopProducts: protectedProcedure
     .input(
       z.object({
