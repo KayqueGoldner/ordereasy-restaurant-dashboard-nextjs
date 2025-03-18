@@ -167,32 +167,55 @@ export const orderRouter = createTRPCRouter({
       const successUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${newOrder.id}`;
       const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/order/${newOrder.id}`;
 
-      const session = await stripe.checkout.sessions.create({
-        customer: dbUser.stripeCustomerId as string,
-        line_items: cartItemsData.map((item) => ({
-          price_data: {
-            currency: "USD",
-            product_data: {
-              name: item.productName!,
-              description: item.productDescription!,
-              images: [item.productImageUrl!],
+      const session = await stripe.checkout.sessions
+        .create({
+          customer: dbUser.stripeCustomerId as string,
+          line_items: cartItemsData.map((item) => ({
+            price_data: {
+              currency: "USD",
+              product_data: {
+                name: item.productName!,
+                description: item.productDescription!,
+                images: [item.productImageUrl!],
+              },
+              unit_amount: Math.round(parseFloat(item.price || "0") * 100),
             },
-            unit_amount: parseFloat(item.price || "0") * 100,
+            quantity: item.quantity || 0,
+            tax_rates: [STRIPE_TAX_RATE],
+          })),
+          currency: "USD",
+          mode: "payment",
+          discounts: cartData.stripePromoCodeId
+            ? [{ promotion_code: cartData.stripePromoCodeId }]
+            : undefined,
+          metadata: {
+            orderId: newOrder.id,
           },
-          quantity: item.quantity || 0,
-          tax_rates: [STRIPE_TAX_RATE],
-        })),
-        currency: "USD",
-        mode: "payment",
-        discounts: cartData.stripePromoCodeId
-          ? [{ promotion_code: cartData.stripePromoCodeId }]
-          : undefined,
-        metadata: {
-          orderId: newOrder.id,
-        },
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-      });
+          success_url: successUrl,
+          cancel_url: cancelUrl,
+        })
+        .catch(async (err) => {
+          console.log(err);
+
+          await db.delete(order).where(eq(order.id, newOrder.id));
+
+          if (
+            err.type === "StripeInvalidRequestError" &&
+            err.code === "amount_too_small"
+          ) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Cart amount is too small",
+            });
+          }
+        });
+
+      if (!session) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Stripe session not created",
+        });
+      }
 
       await Promise.all([
         db

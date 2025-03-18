@@ -1,4 +1,4 @@
-import { desc, sql, and, eq, gte } from "drizzle-orm";
+import { desc, sql, and, eq, gte, getTableColumns } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -225,6 +225,9 @@ export const reportRouter = createTRPCRouter({
             sql`coalesce(sum(${orderItems.price} * ${orderItems.quantity}), 0)`
               .mapWith(Number)
               .as("totalRevenue"),
+          lastOrderDate: sql`max(${order.createdAt})`
+            .mapWith(String)
+            .as("lastOrderDate"),
         })
         .from(orderItems)
         .innerJoin(products, eq(orderItems.productId, products.id))
@@ -269,5 +272,29 @@ export const reportRouter = createTRPCRouter({
       totalCustomers: totalCustomers[0].count,
       newCustomersThisMonth: newCustomersThisMonth[0].count,
     };
+  }),
+
+  getAllOrdes: protectedProcedure.query(async ({ ctx }) => {
+    const { role } = ctx.user;
+
+    if (role !== "ADMIN") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "You are not authorized to access this resource",
+      });
+    }
+
+    const orders = await db
+      .select({
+        ...getTableColumns(order),
+        user: {
+          ...getTableColumns(users),
+        },
+      })
+      .from(order)
+      .innerJoin(users, eq(order.userId, users.id))
+      .orderBy(desc(order.orderNumber));
+
+    return orders;
   }),
 });

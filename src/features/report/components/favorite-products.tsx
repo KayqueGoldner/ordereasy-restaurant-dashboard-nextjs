@@ -1,5 +1,8 @@
 "use client";
 
+import { format } from "date-fns";
+import Image from "next/image";
+
 import { trpc } from "@/trpc/client";
 import {
   Table,
@@ -9,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Image from "next/image";
 
 export const FavoriteProducts = () => {
   const [data] = trpc.report.getTopProducts.useSuspenseQuery({
@@ -17,9 +19,9 @@ export const FavoriteProducts = () => {
   });
 
   return (
-    <div className="space-y-2 py-5">
+    <div className="w-full space-y-2 py-5">
       <h2 className="text-xl font-medium">Favorite Products</h2>
-      <Table className="max-w-lg">
+      <Table>
         <TableHeader>
           <TableRow className="border-none">
             <TableHead className="px-1 pl-0">
@@ -42,6 +44,11 @@ export const FavoriteProducts = () => {
                 Total Revenue
               </div>
             </TableHead>
+            <TableHead className="px-1">
+              <div className="rounded-full border border-neutral-200 px-4 py-2">
+                Last Order
+              </div>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -57,14 +64,18 @@ export const FavoriteProducts = () => {
                   unoptimized
                 />
               </TableCell>
-              <TableCell className="p-0 py-1 text-center font-medium">
+              <TableCell className="p-0 py-1 text-center">
                 {product.productName}
               </TableCell>
-              <TableCell className="p-0 py-1 text-center font-medium">
+              <TableCell className="p-0 py-1 text-center">
                 {product.totalQuantity} Times
               </TableCell>
-              <TableCell className="py-1 text-right font-medium">
+              <TableCell className="py-1 text-center">
                 ${product.totalRevenue.toFixed(2)}
+              </TableCell>
+              <TableCell className="py-1 text-right">
+                {new Date(product.lastOrderDate).toLocaleDateString()} -{" "}
+                {format(new Date(product.lastOrderDate), "HH:mm a")}
               </TableCell>
             </TableRow>
           ))}
