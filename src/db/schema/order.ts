@@ -68,9 +68,13 @@ export const order = pgTable(
       .notNull()
       .default("PENDING"),
     sessionUrl: text("session_url"),
-    paymentDate: timestamp("payment_date"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    paymentDate: timestamp("payment_date", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (t) => [uniqueIndex("orderNumber_idx").on(t.orderNumber)],
 );
@@ -108,8 +112,12 @@ export const orderItems = pgTable(
     name: text("name").notNull(),
     price: numeric("price", { precision: 10, scale: 2 }).notNull(),
     note: varchar("note", { length: 255 }),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
   },
   (orderItems) => [
     {

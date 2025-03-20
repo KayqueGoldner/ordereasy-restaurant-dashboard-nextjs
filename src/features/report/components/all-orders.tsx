@@ -10,7 +10,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { IoCalendarOutline } from "react-icons/io5";
+import { format } from "date-fns";
+import { parseAsString, useQueryState } from "nuqs";
 
 import { trpc } from "@/trpc/client";
 import {
@@ -21,15 +24,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 
 import { columns } from "./all-orders-columns";
 
 export const AllOrders = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [startDate, setStartDate] = useState<Date>(
+    new Date(new Date().setDate(1)),
+  );
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [datePeriod, setDatePeriod] = useQueryState(
+    "allOrdersDatePeriod",
+    parseAsString.withOptions({
+      history: "push",
+      shallow: false,
+    }),
+  );
 
-  const [allOrders] = trpc.report.getAllOrdes.useSuspenseQuery();
+  const [allOrders] = trpc.report.getAllOrdes.useSuspenseQuery({
+    datePeriod:
+      datePeriod ||
+      `startDate=${format(new Date(new Date().setDate(1)), "yyyy-MM-dd")}&endDate=${format(
+        new Date(),
+        "yyyy-MM-dd",
+      )}`,
+  });
 
   const data = useMemo(
     () =>
@@ -59,9 +87,83 @@ export const AllOrders = () => {
     },
   });
 
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+
+    const newPeriod = `startDate=${format(startDate, "yyyy-MM-dd")}&endDate=${format(endDate, "yyyy-MM-dd")}`;
+    setDatePeriod(newPeriod);
+  }, [startDate, endDate, setDatePeriod]);
+
   return (
     <div className="w-full space-y-2 py-5">
       <h2 className="text-xl font-medium">All Orders ({data.length})</h2>
+      <div className="flex items-center justify-between gap-4">
+        <Input
+          placeholder="Search customer"
+          value={
+            (table.getColumn("customerName")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(event) =>
+            table.getColumn("customerName")?.setFilterValue(event.target.value)
+          }
+          className="max-w-[240px] rounded-full shadow-none"
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Date:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full shadow-none"
+                disabled={!endDate}
+              >
+                {startDate
+                  ? startDate.toLocaleDateString()
+                  : "Select Start Date"}
+                <IoCalendarOutline className="size-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-max p-0" side="left">
+              <Calendar
+                mode="single"
+                selected={startDate || undefined}
+                onSelect={(date) => {
+                  setStartDate(date || new Date(new Date().setMonth(0)));
+                }}
+                disabled={(date) =>
+                  !endDate || date > endDate || date < new Date("1900-01-01")
+                }
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-sm text-muted-foreground">-</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full shadow-none"
+              >
+                {endDate ? endDate.toLocaleDateString() : "Select End Date"}
+                <IoCalendarOutline className="size-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px]" side="left">
+              <Calendar
+                mode="single"
+                selected={endDate || undefined}
+                onSelect={(date) => {
+                  setEndDate(date || new Date());
+                }}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

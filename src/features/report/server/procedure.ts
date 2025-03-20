@@ -1,4 +1,4 @@
-import { desc, sql, and, eq, gte, getTableColumns } from "drizzle-orm";
+import { desc, sql, and, eq, gte, getTableColumns, lte } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -274,27 +274,51 @@ export const reportRouter = createTRPCRouter({
     };
   }),
 
-  getAllOrdes: protectedProcedure.query(async ({ ctx }) => {
-    const { role } = ctx.user;
+  getAllOrdes: protectedProcedure
+    .input(
+      z.object({
+        datePeriod: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { role } = ctx.user;
+      const { datePeriod } = input;
 
-    if (role !== "ADMIN") {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You are not authorized to access this resource",
-      });
-    }
+      if (role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You are not authorized to access this resource",
+        });
+      }
 
-    const orders = await db
-      .select({
-        ...getTableColumns(order),
-        user: {
-          ...getTableColumns(users),
-        },
-      })
-      .from(order)
-      .innerJoin(users, eq(order.userId, users.id))
-      .orderBy(desc(order.orderNumber));
+      type DatePeriod = { startDate: Date; endDate: Date };
 
-    return orders;
-  }),
+      const { startDate, endDate } = datePeriod
+        ? (Object.fromEntries(
+            datePeriod.split("&").map((pair) => {
+              const [key, value] = pair.split("=");
+              return [key, new Date(value)];
+            }),
+          ) as DatePeriod)
+        : {
+            startDate: new Date(new Date().setDate(1)),
+            endDate: new Date(),
+          };
+
+      const orders = await db
+        .select({
+          ...getTableColumns(order),
+          user: {
+            ...getTableColumns(users),
+          },
+        })
+        .from(order)
+        .innerJoin(users, eq(order.userId, users.id))
+        .where(
+          and(gte(order.createdAt, startDate), lte(order.createdAt, endDate)),
+        )
+        .orderBy(desc(order.orderNumber));
+
+      return orders;
+    }),
 });

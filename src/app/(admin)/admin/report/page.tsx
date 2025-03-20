@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { format } from "date-fns";
 
 import { SalesOverview } from "@/features/report/components/sales-overview";
 import { HydrateClient, trpc } from "@/trpc/server";
@@ -18,9 +19,10 @@ const ReportsPage = async ({
 }: {
   searchParams: Promise<{
     datePeriod: "MONTHLY" | "QUARTERLY" | "YEARLY" | undefined;
+    allOrdersDatePeriod: string;
   }>;
 }) => {
-  const { datePeriod } = await searchParams;
+  const { datePeriod, allOrdersDatePeriod } = await searchParams;
   const session = await auth();
 
   if (!session || session.user.role !== "ADMIN") {
@@ -36,7 +38,14 @@ const ReportsPage = async ({
   void trpc.report.getSalesChartData.prefetch({
     datePeriod: datePeriod || "MONTHLY",
   });
-  void trpc.report.getAllOrdes.prefetch();
+  void trpc.report.getAllOrdes.prefetch({
+    datePeriod:
+      allOrdersDatePeriod ||
+      `startDate=${format(new Date(new Date().setDate(1)), "yyyy-MM-dd")}&endDate=${format(
+        new Date(),
+        "yyyy-MM-dd",
+      )}`,
+  });
 
   return (
     <HydrateClient>
