@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
 import { MdArrowBack } from "react-icons/md";
+import Image from "next/image";
+import { XIcon } from "lucide-react";
 
 import { trpc } from "@/trpc/client";
 import { productInsertSchema } from "@/db/schema/products";
@@ -27,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { UploadDropzone } from "@/components/uploadthing";
 
 interface InventoryEditFormProps {
   productId: string;
@@ -75,9 +78,50 @@ export const InventoryEditForm = ({ productId }: InventoryEditFormProps) => {
             name="imageUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Image</FormLabel>
+                <FormLabel>Product Image</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Image URL" />
+                  <div>
+                    {field.value ? (
+                      <div className="relative w-fit">
+                        <Image
+                          src={field.value}
+                          alt="product image"
+                          width={360}
+                          height={360}
+                          className="rounded-lg"
+                          unoptimized
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute -right-2 -top-2 rounded-full"
+                          onClick={() => {
+                            field.onChange("");
+                          }}
+                        >
+                          <XIcon className="size-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <UploadDropzone
+                        endpoint="imageUploader"
+                        onClientUploadComplete={(res) => {
+                          toast.success("Image uploaded");
+                          field.onChange(res[0].url);
+                        }}
+                        onUploadError={(error: Error) => {
+                          console.log(error);
+                          toast.error("Failed to upload image");
+                        }}
+                        appearance={{
+                          button: {
+                            backgroundColor: "hsla(24.6 95% 53.1%)",
+                          },
+                        }}
+                      />
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
