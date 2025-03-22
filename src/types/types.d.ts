@@ -5,7 +5,7 @@ interface Product {
   description: string;
   categoryName: string;
   price: string;
-  calories: string;
+  calories: number;
   ingredients: string;
   allergens: string;
   preparationTime: number;
@@ -17,4 +17,13 @@ interface Product {
 interface Discounts {
   code: string;
   amount: number;
+}
+
+interface ProductsListFilter {
+  maxPrice?: string;
+  maxPreparationTime?: number;
+  minimumServes?: number;
+  maxCalories?: number;
+  ingredients?: string;
+  allergens?: string;
 }

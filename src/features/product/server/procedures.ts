@@ -1,5 +1,15 @@
 import { z } from "zod";
-import { and, desc, eq, getTableColumns, ilike, lt } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  ilike,
+  lt,
+  lte,
+  notIlike,
+} from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { db } from "@/db/drizzle";
@@ -24,10 +34,58 @@ export const productsRouter = createTRPCRouter({
         limit: z.number().min(1).max(100),
         categoryId: z.string().optional(),
         query: z.string().optional(),
+        maxPrice: z.string().optional(),
+        maxPreparationTime: z.number().optional(),
+        minimumServes: z.number().optional(),
+        maxCalories: z.number().optional(),
+        ingredients: z.string().optional(),
+        allergens: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const { cursor, limit, categoryId, query } = input;
+      const {
+        cursor,
+        limit,
+        categoryId,
+        query,
+        allergens,
+        ingredients,
+        maxCalories,
+        maxPreparationTime,
+        maxPrice,
+        minimumServes,
+      } = input;
+
+      const normalizeStringFilter = (input: string) =>
+        input
+          .toLowerCase()
+          .split(",")
+          .map((word) => word.trim())
+          .filter(Boolean);
+
+      const ingredientWords = ingredients
+        ? normalizeStringFilter(ingredients)
+        : [];
+      const allergenWords = allergens ? normalizeStringFilter(allergens) : [];
+
+      const filters = [
+        cursor ? lt(products.id, cursor.id) : null,
+        categoryId ? eq(products.categoryId, categoryId) : null,
+        query ? ilike(products.name, `%${query}%`) : null,
+        maxPrice ? lte(products.price, maxPrice) : null,
+        maxPreparationTime
+          ? lte(products.preparationTime, maxPreparationTime)
+          : null,
+        minimumServes ? gte(products.serves, minimumServes) : null,
+        maxCalories ? lte(products.calories, maxCalories) : null,
+
+        ...ingredientWords.map((word) =>
+          ilike(products.ingredients, `%${word}%`),
+        ),
+        ...allergenWords.map((word) =>
+          notIlike(products.allergens, `%${word}%`),
+        ),
+      ].filter((value) => value !== null);
 
       const data = await db
         .select({
@@ -36,13 +94,7 @@ export const productsRouter = createTRPCRouter({
         })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
-        .where(
-          and(
-            cursor ? lt(products.id, cursor.id) : undefined,
-            categoryId ? eq(products.categoryId, categoryId) : undefined,
-            query ? ilike(products.name, `%${query}%`) : undefined,
-          ),
-        )
+        .where(filters.length ? and(...filters) : undefined)
         .orderBy(desc(products.id))
         .limit(limit + 1);
 

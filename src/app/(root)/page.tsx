@@ -11,17 +11,39 @@ import { Header } from "./_components/header";
 import { ProductsList } from "./_components/products-list";
 
 interface HomeProps {
-  searchParams: Promise<{ categoryId?: string; query?: string }>;
+  searchParams: Promise<
+    { categoryId?: string; query?: string } & ProductsListFilter
+  >;
 }
 
 export default async function Home({ searchParams }: HomeProps) {
   const session = await auth();
-  const { categoryId, query } = await searchParams;
+  const { categoryId, query, ...filters } = await searchParams;
+
+  const formattedFilters = Object.entries(filters).reduce(
+    (acc, [key, value]) => {
+      if (value === "") return acc;
+
+      const numericKeys = [
+        "minimumServes",
+        "maxPreparationTime",
+        "maxCalories",
+      ];
+
+      if (numericKeys.includes(key)) {
+        return { ...acc, [key]: Number(value) };
+      } else {
+        return { ...acc, [key]: value };
+      }
+    },
+    {} as ProductsListFilter,
+  );
 
   void trpc.products.getMany.prefetchInfinite({
     limit: PRODUCTS_LIST_LIMIT,
     categoryId,
     query,
+    ...formattedFilters,
   });
   void trpc.cart.getData.prefetch();
   void trpc.categories.getMany.prefetch();
@@ -37,7 +59,11 @@ export default async function Home({ searchParams }: HomeProps) {
           <div className="flex size-full flex-col overflow-hidden p-2">
             <Header session={session} />
             <FilterNav />
-            <ProductsList categoryId={categoryId} query={query} />
+            <ProductsList
+              categoryId={categoryId}
+              query={query}
+              filters={formattedFilters}
+            />
           </div>
         </div>
         <CartSidebar isMobile={false} />

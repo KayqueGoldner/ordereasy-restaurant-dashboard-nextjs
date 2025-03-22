@@ -18,17 +18,27 @@ import { PRODUCTS_LIST_LIMIT } from "@/constants";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 
 import { HeaderSearch } from "./header-search";
+import { ProductsListFilter } from "./products-list-filter";
 
 interface ProductsListProps {
   categoryId?: string;
   query?: string;
+  filters?: ProductsListFilter;
 }
 
-export const ProductsList = ({ categoryId, query }: ProductsListProps) => {
+export const ProductsList = ({
+  categoryId,
+  query,
+  filters,
+}: ProductsListProps) => {
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <ErrorBoundary fallback={<p>Error</p>}>
-        <ProductsListSuspense categoryId={categoryId} query={query} />
+        <ProductsListSuspense
+          categoryId={categoryId}
+          query={query}
+          filters={filters}
+        />
       </ErrorBoundary>
     </Suspense>
   );
@@ -37,6 +47,7 @@ export const ProductsList = ({ categoryId, query }: ProductsListProps) => {
 export const ProductsListSuspense = ({
   categoryId,
   query,
+  filters,
 }: ProductsListProps) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const { isExpanded, onCollapse, onExpand } = useExpandHome();
@@ -47,6 +58,7 @@ export const ProductsListSuspense = ({
       limit: PRODUCTS_LIST_LIMIT,
       categoryId,
       query,
+      ...filters,
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -68,7 +80,7 @@ export const ProductsListSuspense = ({
       <div
         className={cn(
           "relative flex h-12 flex-col gap-2 overflow-hidden rounded-xl bg-white p-2 transition-all duration-300",
-          isFilterOpen && "h-36",
+          isFilterOpen && "h-[calc-size(auto,size)]",
         )}
       >
         <div className="-my-2 flex h-12 w-full items-center gap-2 py-1.5">
@@ -102,7 +114,7 @@ export const ProductsListSuspense = ({
           </Hint>
         </div>
         <div className="size-full flex-1">
-          <div className="size-full rounded-xl border">filters</div>
+          <ProductsListFilter />
         </div>
       </div>
       <ScrollArea className="mt-2.5 h-full flex-1 pr-5">
@@ -124,10 +136,10 @@ export const ProductsListSuspense = ({
                   product={{
                     ...product,
                     categoryName: product.categoryName as string,
-                    calories: product.calories || "",
+                    calories: product.calories || 0,
                     ingredients: product.ingredients || "",
                     allergens: product.allergens || "",
-                    preparationTime: product.preparationTime || "",
+                    preparationTime: product.preparationTime || 0,
                     serves: product.serves || 0,
                     quantity: 1,
                   }}
