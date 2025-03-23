@@ -79,7 +79,7 @@ export const CustomerCartTable = () => {
   });
 
   return (
-    <div className="space-y-5 rounded-md p-5">
+    <div className="space-y-5 rounded-md">
       <h1 className="text-3xl font-bold">Orders</h1>
       <div className="space-y-5">
         <Table>

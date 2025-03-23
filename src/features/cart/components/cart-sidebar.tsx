@@ -69,7 +69,7 @@ export const CartSidebar = ({ className, isMobile }: CartSidebarProps) => {
           name: item.name as string,
           description: item.description as string,
           categoryName: item.categoryName as string,
-          calories: item.calories as string,
+          calories: item.calories as number,
           ingredients: item.ingredients as string,
           allergens: item.allergens as string,
           preparationTime: item.preparationTime as number,
