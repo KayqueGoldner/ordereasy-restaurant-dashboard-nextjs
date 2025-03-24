@@ -8,6 +8,7 @@ import { discount } from "@/db/schema/discount";
 import { products } from "@/db/schema/products";
 import { users } from "@/db/schema/users";
 import { order, orderItems } from "@/db/schema/order";
+import { cartDiscount } from "@/db/schema/cart";
 
 export const reportRouter = createTRPCRouter({
   getDiscounts: protectedProcedure.query(async ({ ctx }) => {
@@ -20,7 +21,32 @@ export const reportRouter = createTRPCRouter({
       });
     }
 
-    return db.select().from(discount).orderBy(desc(discount.createdAt));
+    const discounts = await db
+      .select({
+        ...getTableColumns(discount),
+        redeemedCount: db.$count(
+          cartDiscount,
+          eq(cartDiscount.discountId, discount.id),
+        ),
+        usedCount: db.$count(
+          cartDiscount,
+          and(
+            eq(cartDiscount.discountId, discount.id),
+            eq(cartDiscount.used, true),
+          ),
+        ),
+        // should work, but might break in large cases
+        totalDiscountValue:
+          sql`coalesce(sum(CASE WHEN ${cartDiscount.used} = true THEN ${discount.amount}::numeric ELSE 0 END), 0)`
+            .mapWith(Number)
+            .as("totalDiscountValue"),
+      })
+      .from(discount)
+      .leftJoin(cartDiscount, eq(discount.id, cartDiscount.discountId))
+      .orderBy(desc(discount.createdAt))
+      .groupBy(discount.id);
+
+    return discounts;
   }),
 
   getSalesOverview: protectedProcedure

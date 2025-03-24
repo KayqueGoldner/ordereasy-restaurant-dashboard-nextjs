@@ -104,6 +104,13 @@ export const cartRouter = createTRPCRouter({
         });
       }
 
+      if (discountData.expires && discountData.expires < new Date()) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Discount code expired",
+        });
+      }
+
       const cartDiscountData = await db
         .select({
           id: cartDiscount.id,

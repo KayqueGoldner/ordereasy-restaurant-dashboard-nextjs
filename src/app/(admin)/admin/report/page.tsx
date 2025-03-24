@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth";
 import { FavoriteProducts } from "@/features/report/components/favorite-products";
 import { ReportChart } from "@/features/report/components/report-chart";
 import { AllOrders } from "@/features/report/components/all-orders";
+import { DiscountsTable } from "@/features/report/components/discounts-table";
 
 export const metadata: Metadata = {
   title: "Reports | OrderEasy Dashboard",
@@ -46,6 +47,7 @@ const ReportsPage = async ({
         "yyyy-MM-dd",
       )}`,
   });
+  void trpc.report.getDiscounts.prefetch();
 
   return (
     <HydrateClient>
@@ -53,6 +55,7 @@ const ReportsPage = async ({
       <ReportChart />
       <FavoriteProducts />
       <AllOrders />
+      <DiscountsTable />
     </HydrateClient>
   );
 };
