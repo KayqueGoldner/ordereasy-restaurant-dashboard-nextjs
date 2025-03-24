@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { columns } from "./discounts-table-columns";
+import { DiscountsTableForm } from "./discounts-table-form";
 
 export const DiscountsTable = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -38,6 +39,7 @@ export const DiscountsTable = () => {
         code: discount.code,
         amount: discount.amount,
         expires: discount.expires,
+        isExpired: discount.expires < new Date(),
         redeemedCount: discount.redeemedCount,
         usedCount: discount.usedCount,
         totalSaved: discount.totalDiscountValue,
@@ -73,6 +75,9 @@ export const DiscountsTable = () => {
           }
           className="max-w-[240px] rounded-full shadow-none"
         />
+        <div>
+          <DiscountsTableForm />
+        </div>
       </div>
       <Table>
         <TableHeader>

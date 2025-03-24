@@ -5,11 +5,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export type OrderItem = {
   code: string;
   amount: string;
   expires: Date;
+  isExpired: boolean;
   redeemedCount: number;
   usedCount: number;
   totalSaved: number;
@@ -80,6 +82,34 @@ export const columns: ColumnDef<OrderItem>[] = [
     },
   },
   {
+    accessorKey: "isExpired",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="w-full rounded-full border border-neutral-200 px-4 py-2 text-[13px]"
+        >
+          Expired
+          <ArrowUpDown className="size-4" />
+        </Button>
+      );
+    },
+    cell: ({ getValue }) => {
+      return (
+        <div className="ml-5 flex items-center justify-start gap-2 text-center text-sm font-normal">
+          <div
+            className={cn(
+              "size-3 rounded-full",
+              getValue() ? "bg-destructive" : "bg-green-500",
+            )}
+          />
+          {getValue() ? "Expired" : "Valid"}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "redeemedCount",
     header: ({ column }) => {
       return (
@@ -95,7 +125,9 @@ export const columns: ColumnDef<OrderItem>[] = [
     },
     cell: ({ getValue }) => {
       return (
-        <div className="pl-4 text-center text-sm">{getValue() as number}</div>
+        <div className="pl-4 text-center text-sm">
+          {getValue() as number} Times
+        </div>
       );
     },
   },
@@ -115,7 +147,9 @@ export const columns: ColumnDef<OrderItem>[] = [
     },
     cell: ({ getValue }) => {
       return (
-        <div className="pl-4 text-center text-sm">{getValue() as number}</div>
+        <div className="pl-4 text-center text-sm">
+          {getValue() as number} Times
+        </div>
       );
     },
   },
