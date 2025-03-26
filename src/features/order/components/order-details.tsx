@@ -128,7 +128,8 @@ export const OrderDetails = ({ orderId }: OrderDetailsProps) => {
               </div>
             </div>
           </div>
-          {order.paymentStatus !== "SUCCEEDED" ? (
+          {order.paymentStatus !== "SUCCEEDED" &&
+          order.paymentStatus !== "FAILED" ? (
             <Button className="w-full" asChild>
               <Link href={order.sessionUrl as string} target="_blank">
                 <FaCcStripe className="size-5" />

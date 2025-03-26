@@ -1,4 +1,4 @@
-import { TbMenu3, TbActivity } from "react-icons/tb";
+import { TbMenu3, TbActivity, TbShoppingCartCog } from "react-icons/tb";
 import { IoLogOutOutline, IoSettingsOutline } from "react-icons/io5";
 import { FaShop } from "react-icons/fa6";
 import { FaChartPie } from "react-icons/fa";
@@ -6,6 +6,7 @@ import { UserIcon } from "lucide-react";
 import { MdInventory } from "react-icons/md";
 import { User } from "next-auth";
 import { GiMeal } from "react-icons/gi";
+import Image from "next/image";
 
 import {
   Sheet,
@@ -17,10 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { Hint } from "@/components/hint";
-import Image from "next/image";
+import { signOutAction } from "@/actions/auth-actions";
 
 import { NavigationMenuLink } from "./navigation-menu-link";
-import { signOutAction } from "@/actions/auth-actions";
 
 const LINKS = {
   CUSTOMER: [
@@ -50,6 +50,11 @@ const LINKS = {
       label: "Shop",
       icon: <FaShop className="size-[18px]" />,
       url: "/",
+    },
+    {
+      label: "Manage Orders",
+      url: "/admin/manage-orders",
+      icon: <TbShoppingCartCog />,
     },
     {
       label: "Report",
