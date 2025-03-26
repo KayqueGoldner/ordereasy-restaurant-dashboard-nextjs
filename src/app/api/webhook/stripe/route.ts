@@ -76,5 +76,40 @@ export async function POST(req: Request) {
       .where(eq(cartItems.cartId, existingOrder.cartId));
   }
 
+  if (event.type === "checkout.session.expired") {
+    const orderId = session.metadata?.orderId;
+
+    if (!orderId) {
+      return new Response("No orderId found in session metadata", {
+        status: 400,
+      });
+    }
+
+    const [existingOrder] = await db
+      .select()
+      .from(order)
+      .where(eq(order.id, orderId));
+
+    if (!existingOrder) {
+      return new Response("No order found", { status: 400 });
+    }
+
+    await db
+      .update(order)
+      .set({
+        paymentStatus: "FAILED",
+        status: "CANCELLED",
+        updatedAt: new Date(),
+      })
+      .where(eq(order.id, orderId));
+
+    await db
+      .update(cartDiscount)
+      .set({
+        used: false,
+      })
+      .where(and(eq(cartDiscount.cartId, existingOrder.cartId)));
+  }
+
   return new Response(null, { status: 200 });
 }

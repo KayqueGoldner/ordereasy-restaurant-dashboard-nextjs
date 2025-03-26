@@ -5,6 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
+import { OrderStatus } from "@/db/schema/order";
 
 export type OrderItem = {
   orderNumber: number;
@@ -12,7 +13,7 @@ export type OrderItem = {
   customerName: string | null;
   paymentStatus: "PENDING" | "FAILED" | "SUCCEEDED";
   totalPayment: string;
-  orderStatus: "PENDING" | "PREPARING" | "DELIVERED" | "CANCELED";
+  orderStatus: OrderStatus;
 };
 
 export const columns: ColumnDef<OrderItem>[] = [

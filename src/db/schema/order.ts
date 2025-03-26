@@ -30,8 +30,11 @@ export const orderStatusEnum = pgEnum("order_status", [
   "PENDING",
   "PREPARING",
   "DELIVERED",
-  "CANCELED",
+  "CANCELLED",
 ]);
+
+export const OrderStatusEnumValues = orderStatusEnum.enumValues;
+export type OrderStatus = (typeof OrderStatusEnumValues)[number];
 
 export const paymentProviderEnum = pgEnum("payment_provider", [
   "STRIPE",
@@ -59,7 +62,7 @@ export const order = pgTable(
     }).notNull(),
     tax: numeric("tax", { precision: 10, scale: 2 }).notNull(),
     totalPrice: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
-    status: orderStatusEnum("status").notNull().default("PENDING"),
+    status: text("status").notNull().default("PENDING").$type<OrderStatus>(),
     orderNumber: integer("order_number").notNull().unique(),
     paymentProvider: paymentProviderEnum("payment_provider")
       .notNull()

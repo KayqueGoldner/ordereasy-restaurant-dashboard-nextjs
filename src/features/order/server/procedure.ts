@@ -193,6 +193,7 @@ export const orderRouter = createTRPCRouter({
           },
           success_url: successUrl,
           cancel_url: cancelUrl,
+          expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 minutes, should be removed in production
         })
         .catch(async (err) => {
           console.log(err);

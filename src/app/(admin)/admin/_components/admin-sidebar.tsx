@@ -6,6 +6,7 @@ import { FaChartPie, FaShop } from "react-icons/fa6";
 import { MdInventory } from "react-icons/md";
 import { Session } from "next-auth";
 import { UserIcon } from "lucide-react";
+import { TbShoppingCartCog } from "react-icons/tb";
 
 import {
   Sidebar,
@@ -26,6 +27,11 @@ const items = [
     title: "Shop",
     url: "/",
     icon: <FaShop />,
+  },
+  {
+    title: "Manage Orders",
+    url: "/admin/manage-orders",
+    icon: <TbShoppingCartCog />,
   },
   {
     title: "Report",

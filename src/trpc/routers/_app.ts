@@ -7,6 +7,7 @@ import { orderRouter } from "@/features/order/server/procedure";
 import { discountRouter } from "@/features/discount/server/procedure";
 import { reportRouter } from "@/features/report/server/procedure";
 import { customerRouter } from "@/features/customer/server/procedure";
+import { manageOrdersRouter } from "@/features/manage-orders/server/procedure";
 
 import { createTRPCRouter } from "../init";
 
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   order: orderRouter,
   discount: discountRouter,
   customer: customerRouter,
+  manageOrders: manageOrdersRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;
