@@ -277,12 +277,12 @@ export const reportRouter = createTRPCRouter({
     }
 
     const totalCustomers = await db
-      .select({ count: sql`COUNT(*)` })
+      .select({ count: sql`COUNT(*)`.mapWith(Number) })
       .from(users)
       .where(eq(users.role, "CUSTOMER"));
 
     const newCustomersThisMonth = await db
-      .select({ count: sql`COUNT(*)` })
+      .select({ count: sql`COUNT(*)`.mapWith(Number) })
       .from(users)
       .where(
         and(
